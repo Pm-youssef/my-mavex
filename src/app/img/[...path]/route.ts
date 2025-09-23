@@ -35,7 +35,7 @@ export async function GET(req: Request, { params }: { params: { path: string[] }
     headers.set('Content-Type', getContentType(abs))
     // Cache aggressively for static assets
     headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-    return new NextResponse(buf, { status: 200, headers })
+    return new NextResponse(new Uint8Array(buf), { status: 200, headers })
   } catch (e: any) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
