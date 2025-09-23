@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --------------------
+// Categories
+// --------------------
+model Category {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  // Category media
+  imageUrl      String?   // main image for cards
+  bannerUrl     String?   // hero/banner for category page
+  thumbnailUrl  String?   // small thumbnail
+  iconUrl       String?   // optional icon
+  displayOrder  Int       @default(0)
+  parentId      String?
+  parent        Category? @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
+  children      Category[] @relation("CategoryToCategory")
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([parentId])
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// --------------------
+// Auth & Wishlist
+// --------------------
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  passwordHash  String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  orders        Order[]
+  wishlist      WishlistItem[]
+}
+
+model WishlistItem {
+  id        String  @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  features        String?
+  originalPrice   Float
+  discountedPrice Float
+  discountEndsAt  DateTime?
+  imageUrl        String
+  hoverImageUrl   String?  // صورة تظهر عند hover (اختياري)
+  thumbnailUrl    String?  // صورة مصغرة للبطاقة
+  image2Url       String?  // صورة إضافية 1
+  image3Url       String?  // صورة إضافية 2
+  stock           Int      @default(0) // للا兼لية السابقة، سنبقيه للتوافق
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  orderItems      OrderItem[]
+  variants        ProductVariant[]
+  reviews         Review[]
+  wishlist        WishlistItem[]
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id               String  @id @default(cuid())
+  productId        String
+  size             String
+  stock            Int     @default(0)
+  minDisplayStock  Int     @default(0)
+  product          Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@unique([productId, size])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String?
+  customerName  String
+  customerEmail String
+  customerPhone String
+  customerAddress String?
+  customerCity   String?
+  customerGovernorate String?
+  customerPostalCode String?
+  totalAmount   Float
+  subtotal      Float
+  shippingCost  Float       @default(0)
+  status        String      @default("PENDING")
+  paymentMethod String      @default("COD") // COD = Cash on Delivery
+  shippingMethod String     @default("STANDARD") // STANDARD, EXPRESS
+  paymentId     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+  user          User?       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  price     Float
+  orderId   String
+  productId String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  rating    Int
+  comment   String?
+  pinned    Boolean  @default(false)
+  authorId  String?
+  images    String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model ContactMessage {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String
+  status     String   @default("new") // new | read | archived
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// --------------------
+// Coupons
+// --------------------
+model Coupon {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  type         String   // PERCENT | FIXED
+  value        Float    // percent (0-100) or fixed amount in EGP
+  minSubtotal  Float?
+  usageLimit   Int?
+  usageCount   Int      @default(0)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// --------------------
+// Site Settings (singleton, id = "default")
+// --------------------
+model SiteSettings {
+  id               String   @id
+  storeName        String   @default("T-Shirt Store")
+  storeEmail       String?
+  phone            String?
+  address          String?
+  currency         String   @default("EGP")
+  currencySymbol   String?  // e.g. E£
+  currencyPosition String?  // left | right
+  shippingStandard Float    @default(75)
+  shippingExpress  Float    @default(150)
+  freeShippingMin  Float?
+  taxPercent       Float?
+  enableReviews    Boolean  @default(true)
+  enableCoupons    Boolean  @default(true)
+  enableWishlist   Boolean  @default(true)
+  themePrimary     String?  // hex color, e.g. #0c1420
+  heroBannerUrl    String?
+
+  // Social links
+  facebookUrl      String?
+  instagramUrl     String?
+  tiktokUrl        String?
+  twitterUrl       String?
+  youtubeUrl       String?
+  whatsappNumber   String?
+  whatsappEnabled  Boolean  @default(false)
+
+  // Policies & legal
+  privacyPolicyUrl String?
+  termsUrl         String?
+  returnPolicy     String?
+
+  // Maintenance
+  siteOnline       Boolean  @default(true)
+  maintenanceMsg   String?
+
+  // Locale & SEO
+  locale           String?  // e.g. ar-EG
+  timeZone         String?  // e.g. Africa/Cairo
+  metaTitle        String?
+  metaDescription  String?
+  ogImageUrl       String?
+
+  // Promo bar
+  promoEnabled     Boolean  @default(false)
+  promoText        String?
+  promoLink        String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
