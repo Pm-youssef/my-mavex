@@ -16,29 +16,37 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const productsRaw = await prisma.product.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { variants: { select: { id: true, size: true, stock: true, minDisplayStock: true } } },
-  });
-  const products = Array.isArray(productsRaw) ? productsRaw : [];
-  // Load categories directly via Prisma to avoid env/config issues
-  const categoriesRaw = await prisma.category.findMany({
-    orderBy: [{ displayOrder: 'asc' as const }, { name: 'asc' as const }],
-    include: { _count: { select: { products: true } } } as any,
-  });
-  const categories = (Array.isArray(categoriesRaw) ? categoriesRaw : []).map((c: any) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    description: c.description,
-    displayOrder: c.displayOrder,
-    parentId: c.parentId,
-    imageUrl: c.imageUrl,
-    bannerUrl: c.bannerUrl,
-    thumbnailUrl: c.thumbnailUrl,
-    iconUrl: c.iconUrl,
-    productsCount: c?._count?.products || 0,
-  }));
+  let products: any[] = [];
+  let categories: any[] = [];
+  try {
+    const productsRaw = await prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { variants: { select: { id: true, size: true, stock: true, minDisplayStock: true } } },
+    });
+    products = Array.isArray(productsRaw) ? productsRaw : [];
+    // Load categories directly via Prisma to avoid env/config issues
+    const categoriesRaw = await prisma.category.findMany({
+      orderBy: [{ displayOrder: 'asc' as const }, { name: 'asc' as const }],
+      include: { _count: { select: { products: true } } } as any,
+    });
+    categories = (Array.isArray(categoriesRaw) ? categoriesRaw : []).map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description,
+      displayOrder: c.displayOrder,
+      parentId: c.parentId,
+      imageUrl: c.imageUrl,
+      bannerUrl: c.bannerUrl,
+      thumbnailUrl: c.thumbnailUrl,
+      iconUrl: c.iconUrl,
+      productsCount: c?._count?.products || 0,
+    }));
+  } catch (e) {
+    console.error('HomePage Prisma error:', e);
+    products = [];
+    categories = [];
+  }
 
   return (
     <div className="min-h-screen">

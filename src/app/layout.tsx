@@ -22,6 +22,16 @@ const inter = Inter({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  // Safely resolve metadataBase to avoid crashes on invalid env URLs
+  const resolveBase = (): URL => {
+    const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    try {
+      return new URL(envUrl || 'https://your-domain.vercel.app');
+    } catch {
+      return new URL('https://your-domain.vercel.app');
+    }
+  };
+
   try {
     const h = headers();
     const proto = h.get('x-forwarded-proto') || 'http';
@@ -35,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title,
       description,
-      metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.vercel.app'),
+      metadataBase: resolveBase(),
       openGraph: { title, description, images: [image] },
       twitter: { card: 'summary_large_image', title, description, images: [image] },
     };
@@ -43,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: META_TAGS.title,
       description: META_TAGS.description,
-      metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.vercel.app'),
+      metadataBase: resolveBase(),
       openGraph: { title: META_TAGS.title, description: META_TAGS.description, images: [META_TAGS.ogImage] },
       twitter: { card: 'summary_large_image', title: META_TAGS.title, description: META_TAGS.description, images: [META_TAGS.twitterImage] },
     };

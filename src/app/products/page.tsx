@@ -34,16 +34,22 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
     ];
   }
 
-  const raw = await prisma.product.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      variants: {
-        select: { id: true, size: true, stock: true, minDisplayStock: true },
+  let raw: any[] = [];
+  try {
+    raw = await prisma.product.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        variants: {
+          select: { id: true, size: true, stock: true, minDisplayStock: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
       },
-      category: { select: { id: true, name: true, slug: true } },
-    },
-  });
+    });
+  } catch (e) {
+    console.error('ProductsPage Prisma error:', e);
+    raw = [];
+  }
 
   const products = raw.map((p) => ({
     id: p.id,
@@ -57,7 +63,7 @@ export default async function ProductsPage({ searchParams }: { searchParams?: { 
     stock: Number(p.stock ?? 0),
     categorySlug: p.category?.slug ?? null,
     categoryName: p.category?.name ?? null,
-    variants: (p.variants || []).map((v) => ({
+    variants: (p.variants || []).map((v: { id: string; size: string; stock?: number; minDisplayStock?: number }) => ({
       id: v.id,
       size: v.size,
       stock: Number(v.stock || 0),

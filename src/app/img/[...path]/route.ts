@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 
-const ROOT_IMG_DIR = path.join(process.cwd(), 'img')
+// This route reads from the filesystem; ensure Node.js runtime
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+// Prefer public/img (Next.js static), but keep backward-compat with legacy ./img
+const PUBLIC_IMG_DIR = path.join(process.cwd(), 'public', 'img')
+const LEGACY_IMG_DIR = path.join(process.cwd(), 'img')
 
 function getContentType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase()
@@ -21,21 +27,39 @@ function getContentType(filePath: string): string {
 export async function GET(req: Request, { params }: { params: { path: string[] } }) {
   try {
     const rel = params.path.join('/')
-    const abs = path.join(ROOT_IMG_DIR, rel)
+    // Resolve under public/img first, then fallback to legacy ./img
+    const tryRoots = [PUBLIC_IMG_DIR, LEGACY_IMG_DIR]
+    let chosenRoot: string | null = null
+    let abs: string | null = null
+    for (const root of tryRoots) {
+      const candidate = path.join(root, rel)
+      const normalizedRoot = path.normalize(root + path.sep)
+      const normalizedAbs = path.normalize(candidate)
+      if (!normalizedAbs.startsWith(normalizedRoot)) {
+        continue // path traversal attempt; skip
+      }
+      try {
+        const stat = await fs.stat(normalizedAbs)
+        if (stat.isFile()) {
+          chosenRoot = root
+          abs = normalizedAbs
+          break
+        }
+      } catch {}
+    }
 
-    // Prevent path traversal
-    const normalizedRoot = path.normalize(ROOT_IMG_DIR + path.sep)
-    const normalizedAbs = path.normalize(abs)
-    if (!normalizedAbs.startsWith(normalizedRoot)) {
-      return NextResponse.json({ error: 'Invalid path' }, { status: 400 })
+    if (!abs) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
     const buf = await fs.readFile(abs)
     const headers = new Headers()
     headers.set('Content-Type', getContentType(abs))
+    headers.set('Content-Length', String(buf.length))
     // Cache aggressively for static assets
     headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-    return new NextResponse(new Uint8Array(buf), { status: 200, headers })
+    // Use standard Response with Node Buffer body
+    return new Response(buf, { status: 200, headers })
   } catch (e: any) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }

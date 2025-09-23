@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import path from 'path'
 import { promises as fs } from 'fs'
 
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     const imgDir = path.join(process.cwd(), 'public', 'img')
@@ -30,6 +32,7 @@ export async function GET() {
 
     return NextResponse.json({ images })
   } catch (error) {
+    console.error('GET /api/images failed:', error)
     return NextResponse.json({ images: [], error: 'Failed to list images' }, { status: 500 })
   }
 }
