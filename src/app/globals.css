@@ -759,6 +759,10 @@ html, body {
 
 /* Custom Animations */
 @layer utilities {
+  /* Disambiguate transition timing to avoid ambiguous arbitrary class warnings */
+  .ease-smooth {
+    transition-timing-function: cubic-bezier(.22,1,.36,1);
+  }
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }

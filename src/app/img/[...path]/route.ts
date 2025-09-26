@@ -53,8 +53,8 @@ export async function GET(req: Request, { params }: { params: { path: string[] }
     headers.set('Content-Length', String(buf.length))
     // Cache aggressively for static assets
     headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-    // Use standard Response with Node Buffer body
-    return new Response(buf, { status: 200, headers })
+    // Use Response with a BodyInit-compatible type (Uint8Array) to satisfy TS/Edge typings
+    return new Response(new Uint8Array(buf), { status: 200, headers })
   } catch (e: any) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
