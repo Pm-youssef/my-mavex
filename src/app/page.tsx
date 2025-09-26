@@ -16,8 +16,21 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
+  type CategoryView = {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    displayOrder: number | null;
+    parentId: string | null;
+    imageUrl: string | null;
+    bannerUrl: string | null;
+    thumbnailUrl: string | null;
+    iconUrl: string | null;
+    productsCount: number;
+  };
   let products: any[] = [];
-  let categories: any[] = [];
+  let categories: CategoryView[] = [];
   try {
     const productsRaw = await prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
@@ -27,21 +40,24 @@ export default async function HomePage() {
     // Load categories directly via Prisma to avoid env/config issues
     const categoriesRaw = await prisma.category.findMany({
       orderBy: [{ displayOrder: 'asc' as const }, { name: 'asc' as const }],
-      include: { _count: { select: { products: true } } } as any,
+      include: { _count: { select: { products: true } } },
     });
-    categories = (Array.isArray(categoriesRaw) ? categoriesRaw : []).map((c: any) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      description: c.description,
-      displayOrder: c.displayOrder,
-      parentId: c.parentId,
-      imageUrl: c.imageUrl,
-      bannerUrl: c.bannerUrl,
-      thumbnailUrl: c.thumbnailUrl,
-      iconUrl: c.iconUrl,
-      productsCount: c?._count?.products || 0,
-    }));
+    categories = (Array.isArray(categoriesRaw) ? categoriesRaw : []).map((c): CategoryView => {
+      const ca = c as any; // tolerate optional media fields if not in Prisma schema
+      return {
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        displayOrder: c.displayOrder,
+        parentId: c.parentId,
+        imageUrl: (ca?.imageUrl ?? null) as string | null,
+        bannerUrl: (ca?.bannerUrl ?? null) as string | null,
+        thumbnailUrl: (ca?.thumbnailUrl ?? null) as string | null,
+        iconUrl: (ca?.iconUrl ?? null) as string | null,
+        productsCount: (c as any)?._count?.products || 0,
+      };
+    });
   } catch (e) {
     console.error('HomePage Prisma error:', e);
     products = [];
@@ -96,7 +112,7 @@ export default async function HomePage() {
             <h1 className="text-5xl md:text-7xl font-black tracking-widest uppercase text-white mb-8 animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none">
               مرحباً بك في <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(234,179,8,0.25)]">Mavex</span>
             </h1>
-            <p className="text-xl md:text-2xl font-light tracking-wide text-white/90 mb-16 leading-relaxed animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '120ms' }}>
+            <p className="text-xl md:text-2xl font-light tracking-wide text-white mb-16 leading-relaxed animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '120ms' }}>
               اكتشف مجموعتنا المميزة من التيشيرتات عالية الجودة
               <br />
               تصميمات فريدة وألوان مذهلة تناسب جميع الأذواق
@@ -119,7 +135,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              <div className="flex justify-center items-center space-x-8 space-x-reverse text-sm text-white/80">
+              <div className="flex justify-center items-center space-x-8 space-x-reverse text-sm text-white/90">
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
                   <span>جودة عالية</span>
@@ -169,7 +185,7 @@ export default async function HomePage() {
             <div className="flex items-end justify-between gap-4 mb-12">
               <div>
                 <h2 className="text-5xl md:text-7xl font-black tracking-widest uppercase">تسوّق حسب القسم</h2>
-                <p className="mt-3 text-white/70 text-lg">اكتشف الفئات الأكثر شعبية لدينا</p>
+                <p className="mt-3 text-white/90 text-lg">اكتشف الفئات الأكثر شعبية لدينا</p>
               </div>
               <Link href="/products" className="hidden md:inline-flex items-center gap-2 px-5 py-2 rounded-xl border border-white/20 hover:border-white/60 hover:bg-white/5 transition-all">
                 عرض جميع المنتجات ↗
@@ -229,7 +245,7 @@ export default async function HomePage() {
             <h2 className="text-5xl md:text-7xl font-black tracking-widest uppercase text-[#0c1420] mb-6 animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none">
               منتجاتنا <span className="text-yellow-500">المميزة</span>
             </h2>
-            <p className="text-xl md:text-2xl font-light tracking-wide text-gray-600 max-w-3xl mx-auto leading-relaxed animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '120ms' }}>
+            <p className="text-xl md:text-2xl font-light tracking-wide text-gray-700 max-w-3xl mx-auto leading-relaxed animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '120ms' }}>
               تشكيلة واسعة من التيشيرتات بأحدث التصميمات والألوان
               <br />
               جودة عالية وأسعار منافسة تناسب جميع الميزانيات
@@ -252,7 +268,7 @@ export default async function HomePage() {
               <p className="text-gray-600 text-xl font-medium mb-4">
                 لا توجد منتجات متاحة حالياً
               </p>
-              <p className="text-gray-500">سنضيف منتجات جديدة قريباً</p>
+              <p className="text-gray-600">سنضيف منتجات جديدة قريباً</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -82,7 +82,7 @@ export default async function RootLayout({
   const UMAMI_SCRIPT_URL = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL || 'https://analytics.umami.is/script.js';
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${cairo.variable} ${inter.variable} font-arabic`} style={styleVars}>
+      <body className={`${cairo.variable} ${inter.variable} font-arabic antialiased`} style={styleVars}>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-yellow-500 text-black px-4 py-2 rounded"

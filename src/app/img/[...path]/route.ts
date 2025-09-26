@@ -29,7 +29,6 @@ export async function GET(req: Request, { params }: { params: { path: string[] }
     const rel = params.path.join('/')
     // Resolve under public/img first, then fallback to legacy ./img
     const tryRoots = [PUBLIC_IMG_DIR, LEGACY_IMG_DIR]
-    let chosenRoot: string | null = null
     let abs: string | null = null
     for (const root of tryRoots) {
       const candidate = path.join(root, rel)
@@ -40,11 +39,7 @@ export async function GET(req: Request, { params }: { params: { path: string[] }
       }
       try {
         const stat = await fs.stat(normalizedAbs)
-        if (stat.isFile()) {
-          chosenRoot = root
-          abs = normalizedAbs
-          break
-        }
+        if (stat.isFile()) { abs = normalizedAbs; break }
       } catch {}
     }
 
