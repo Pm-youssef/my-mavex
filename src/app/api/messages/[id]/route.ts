@@ -3,6 +3,9 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
     const token = cookies().get(getAdminCookieName())?.value || '';
