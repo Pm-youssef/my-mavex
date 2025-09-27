@@ -8,8 +8,7 @@ const VERSION = 'v1.0.0';
 const APP_SHELL = [
   '/',
   '/site.webmanifest',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/fallback.png',
 ];
 
 self.addEventListener('install', (event) => {

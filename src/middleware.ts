@@ -4,6 +4,28 @@ import type { NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Allow static and PWA assets to pass through untouched
+  const staticPrefixes = [
+    '/_next/static',
+    '/_next/image',
+    '/favicon.ico',
+    '/favicon',
+    '/site.webmanifest',
+    '/manifest.json',
+    '/sw.js',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/img/',
+    '/uploads/',
+    '/fonts/',
+    '/icon-192x192.png',
+    '/icon-512x512.png',
+    '/fallback.png',
+  ]
+  if (staticPrefixes.some((p) => pathname === p || pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
+
   // Handle Paymob webhook
   if (pathname.startsWith('/api/webhook/paymob')) {
     // Add CORS headers for webhook
