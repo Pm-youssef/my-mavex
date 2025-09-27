@@ -3,6 +3,9 @@ import { getAdminCookieName, signAdminJwt, isProduction } from '@/lib/auth';
 import { adminLoginSchema } from '@/lib/validation';
 import { rateLimit } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     // Rate limit: 5 attempts / 5 minutes per IP
@@ -40,7 +43,10 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7, // 7d
     });
     return res;
-  } catch {
+  } catch (err) {
+    console.error('[admin-login] Unexpected error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
+  
+  
 }

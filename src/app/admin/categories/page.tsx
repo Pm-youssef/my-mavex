@@ -43,7 +43,14 @@ export default function CategoriesPage() {
     return `/api/admin/categories?${params.toString()}`;
   }, [q, page, pageSize, sort, dir]);
 
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
+  const fetcher = async (url: string) => {
+    const r = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      throw new Error(txt || `HTTP ${r.status}`);
+    }
+    return r.json();
+  };
   const { data, error, isLoading, mutate } = useSWR<{ items: Category[]; total: number; page: number; pageSize: number }>(listUrl, fetcher, {
     refreshInterval: 30000,
     revalidateOnFocus: true,
@@ -55,11 +62,11 @@ export default function CategoriesPage() {
 
   // Parents list for selection
   const parentsUrl = useMemo(() => `/api/admin/categories?sort=name&dir=asc&page=1&pageSize=1000`, []);
-  const { data: parentsData } = useSWR<{ items: Category[] }>(parentsUrl, fetcher);
-  const parents = useMemo(() => parentsData?.items || [], [parentsData]);
+  const { data: parentsData, error: parentsError } = useSWR<{ items: Category[] }>(parentsUrl, fetcher);
+  const parents = useMemo(() => Array.isArray(parentsData?.items) ? parentsData!.items : [], [parentsData]);
   const parentNameById = useMemo(() => {
     const map = new Map<string, string>();
-    parents.forEach(p => map.set(p.id, p.name));
+    (parents || []).forEach(p => map.set(p.id, p.name));
     return map;
   }, [parents]);
 
@@ -172,6 +179,11 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="p-4 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-700">
+          حدث خطأ في تحميل الأقسام. تأكد من إعداد قاعدة البيانات وتسجيل الدخول ثم أعد المحاولة.
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-black text-[#0c1420]">الأقسام</h1>

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 // Expand Arabic synonyms and common variants/transliterations
 function expandQuery(q: string): string[] {
   const s = (q || '').trim()

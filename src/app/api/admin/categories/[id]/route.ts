@@ -4,6 +4,9 @@ import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 import { z } from 'zod';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 function slugify(input: string) {
   return input
     .toString()

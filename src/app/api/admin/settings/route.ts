@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 function hasSettingsModel(): boolean {
   const anyPrisma = prisma as any;
   return !!anyPrisma?.siteSettings && typeof anyPrisma.siteSettings.findUnique === 'function';
@@ -75,7 +78,8 @@ export async function GET() {
     return NextResponse.json(created);
   } catch (error: any) {
     console.error('Settings GET error:', error);
-    return NextResponse.json({ error: 'Failed to load settings' }, { status: 500 });
+    // Fallback to defaults to keep admin UI functional even if DB tables are not ready
+    return NextResponse.json(DEFAULT_SETTINGS);
   }
 }
 

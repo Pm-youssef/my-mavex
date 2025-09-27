@@ -85,7 +85,7 @@ export default async function RootLayout({
       <head>
         <meta name="theme-color" content={theme} />
         <link rel="manifest" href="/site.webmanifest" />
-        <link rel="icon" href="/icon.png" />
+        <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={`${cairo.variable} ${inter.variable} font-arabic antialiased`} style={styleVars}>
         <a

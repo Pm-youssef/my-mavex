@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET (public-limited): return non-PII order details for thank-you page
 export async function GET(
   _request: NextRequest,

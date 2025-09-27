@@ -4,6 +4,9 @@ import { productSchema } from '@/lib/validation';
 import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
  import { FALLBACK_IMAGE_URL } from '@/lib/constants';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 // Normalize local asset paths to always start with a leading slash
 // e.g., "img/a.png" -> "/img/a.png", "uploads/a.png" -> "/uploads/a.png"
 const normalizeLocalPath = (v: string | undefined | null) => {
@@ -67,10 +70,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json(productsWithVariants);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch products' },
-      { status: 500 }
-    );
+    // Degrade gracefully if DB is not ready
+    return NextResponse.json([]);
   }
 }
 

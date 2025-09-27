@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getAdminCookieName, isProduction } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   try {
     const res = NextResponse.json({ success: true });
@@ -12,9 +15,11 @@ export async function POST() {
       maxAge: 0,
     });
     return res;
-  } catch {
-    return NextResponse.json({ success: false }, { status: 500 });
+  } catch (err) {
+    console.error('[admin-login] Unexpected error:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
+  
 }
 
 // Optional: allow GET to perform logout as well

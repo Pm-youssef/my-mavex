@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const token = cookies().get(getAdminCookieName())?.value || '';
@@ -89,6 +92,12 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Analytics error:', error);
-    return NextResponse.json({ error: 'Failed to compute analytics' }, { status: 500 });
+    return NextResponse.json({
+      kpis: { totalSales: 0, totalOrders: 0, avgOrder: 0, uniqueCustomers: 0 },
+      series: { days: [], salesByDay: [] },
+      distributions: { status: [] },
+      topProducts: [],
+      count: 0,
+    });
   }
 }

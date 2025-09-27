@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const coupons = await (prisma as any).coupon.findMany({ orderBy: { createdAt: 'desc' } });
     return NextResponse.json(coupons);
   } catch (e) {
-    return NextResponse.json({ error: 'Failed to load coupons' }, { status: 500 });
+    // Degrade gracefully if coupons table is not ready yet
+    return NextResponse.json([]);
   }
 }
 
