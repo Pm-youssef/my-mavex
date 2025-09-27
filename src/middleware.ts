@@ -89,12 +89,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
   }
-
   return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    '/:path*',
+    // Exclude static and PWA assets entirely so middleware never runs for them
+    // This is more robust on Vercel than runtime checks
+    '/((?!_next/static|_next/image|favicon.ico|favicon|site\\.webmanifest|manifest\\.json|sw\\.js|robots\\.txt|sitemap\\.xml|img/|uploads/|fonts/|icon-192x192\\.png|icon-512x512\\.png|fallback\\.png).*)',
   ],
 }
