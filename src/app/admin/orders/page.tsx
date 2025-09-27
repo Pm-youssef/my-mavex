@@ -58,7 +58,15 @@ interface Order {
   items: OrderItem[];
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+  if (!res.ok) {
+    // Surface an error so SWR sets 'error' instead of passing an object into 'orders'
+    const msg = await res.text().catch(() => 'Request failed');
+    throw new Error(msg || `HTTP ${res.status}`);
+  }
+  return res.json();
+};
 
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,15 +98,16 @@ export default function OrdersPage() {
   });
 
   const counts = useMemo(() => {
+    const list = Array.isArray(orders) ? orders : [];
     const base = {
-      all: orders.length,
+      all: list.length,
       PENDING: 0,
       PROCESSING: 0,
       SHIPPED: 0,
       DELIVERED: 0,
       CANCELLED: 0,
     } as Record<string, number>;
-    orders.forEach(o => {
+    list.forEach(o => {
       base[o.status] = (base[o.status] || 0) + 1;
     });
     return base;
@@ -125,7 +134,8 @@ export default function OrdersPage() {
 
   // Filtered orders (used by sorting/pagination)
   const filteredOrders = useMemo(() => {
-    return orders.filter((order: Order) => {
+    const list: Order[] = Array.isArray(orders) ? orders : [];
+    return list.filter((order: Order) => {
       const matchesSearch =
         order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -321,6 +331,7 @@ export default function OrdersPage() {
   };
 
   const exportOrders = useCallback(() => {
+    const src: Order[] = Array.isArray(orders) ? orders : [];
     const csvContent = [
       [
         'رقم الطلب',
@@ -336,7 +347,7 @@ export default function OrdersPage() {
         'الحالة',
         'التاريخ',
       ],
-      ...orders
+      ...src
         .filter(order => {
           const matchesSearch =
             order.customerName
@@ -385,8 +396,9 @@ export default function OrdersPage() {
   }, [orders, searchTerm, statusFilter]);
 
   const exportOrdersJSON = useCallback(() => {
+    const src: Order[] = Array.isArray(orders) ? orders : [];
     // compute filtered locally to avoid referencing variables declared later
-    const filtered = orders
+    const filtered = src
       .filter(order => {
         const matchesSearch =
           order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -565,19 +577,24 @@ export default function OrdersPage() {
   }
 
   if (error) {
+    const msg = String((error as any)?.message || '').toLowerCase();
+    const isUnauthorized = msg.includes('unauthorized') || msg.includes('401');
     return (
       <div className="min-h-screen bg-gray-50 pt-32">
         <div className="mavex-container">
           <div className="text-center py-20">
-            <p className="text-red-600 text-xl font-medium">
-              حدث خطأ في تحميل الطلبات
-            </p>
-            <button
-              onClick={() => mutate('/api/orders')}
-              className="mt-4 bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700"
-            >
-              إعادة المحاولة
-            </button>
+            {isUnauthorized ? (
+              <>
+                <p className="text-red-600 text-xl font-medium">انتهت جلسة الإدارة</p>
+                <p className="text-gray-600 mt-2">من فضلك سجّل الدخول مرة أخرى للوصول إلى الطلبات.</p>
+                <Link href="/admin/login" className="inline-block mt-4 bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700">تسجيل الدخول</Link>
+              </>
+            ) : (
+              <>
+                <p className="text-red-600 text-xl font-medium">حدث خطأ في تحميل الطلبات</p>
+                <button onClick={() => mutate('/api/orders')} className="mt-4 bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700">إعادة المحاولة</button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -605,7 +622,7 @@ export default function OrdersPage() {
             >
               العودة
             </Link>
-            {orders.length > 0 && (
+            {Array.isArray(orders) && orders.length > 0 && (
               <>
                 <button
                   onClick={exportOrders}
