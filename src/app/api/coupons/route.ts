@@ -51,7 +51,22 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(coupon, { status: 201 });
   } catch (e: any) {
-    const msg = e?.code === 'P2002' ? 'Coupon code already exists' : 'Failed to create coupon';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // Common Prisma errors
+    if (e?.code === 'P2002') {
+      return NextResponse.json({ error: 'Coupon code already exists' }, { status: 409 });
+    }
+    if (e?.code === 'P2021') {
+      // Table does not exist
+      return NextResponse.json({
+        error: 'Coupons table is missing. Run prisma db push on your production database.',
+        hint: 'From your machine: set DATABASE_URL to your production connection and run: prisma db push',
+      }, { status: 503 });
+    }
+    if (e?.name === 'PrismaClientInitializationError') {
+      return NextResponse.json({
+        error: 'Database connection failed. Check DATABASE_URL (and DIRECT_URL) and SSL parameters (e.g., sslmode=require).',
+      }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'Failed to create coupon' }, { status: 500 });
   }
 }
