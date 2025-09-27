@@ -18,6 +18,7 @@ export const ADMIN_CONFIG = {
 
 export const CART_STORAGE_KEY = 'mavex-cart'
 export const FAVORITES_STORAGE_KEY = 'mavex-favorites'
+export const RECENTLY_VIEWED_STORAGE_KEY = 'mavex-recently-viewed'
 // Remote placeholder image for missing/broken product images
 export const FALLBACK_IMAGE_URL =
   'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=60'

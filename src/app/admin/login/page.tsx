@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password: password.trim() }),
       });
       if (res.ok) {
         toastSuccess({ title: "تم الدخول", description: "تم التحقق من كلمة المرور" });

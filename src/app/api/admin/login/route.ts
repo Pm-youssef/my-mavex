@@ -16,7 +16,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    const ok = parsed.data.password === process.env.ADMIN_PASSWORD;
+    const provided = String(parsed.data.password || '').trim();
+    const expected = String(process.env.ADMIN_PASSWORD || '').trim();
+    if (!expected) {
+      console.warn('[admin-login] ADMIN_PASSWORD is not configured in environment');
+    }
+
+    const ok = expected && provided === expected;
     if (!ok) {
       return NextResponse.json(
         { error: 'كلمة المرور غير صحيحة' },

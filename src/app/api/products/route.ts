@@ -28,9 +28,24 @@ const parseFeatures = (s: unknown): string[] => {
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
+    const idsParam = (url.searchParams.get('ids') || '').trim();
     const limitStr = url.searchParams.get('limit') || '';
     const exclude = (url.searchParams.get('exclude') || '').trim();
     const take = Number(limitStr);
+
+    // If ids are specified, return those products in the same order
+    if (idsParam) {
+      const ids = idsParam.split(',').map((s) => s.trim()).filter(Boolean);
+      if (ids.length === 0) {
+        return NextResponse.json([]);
+      }
+      const list = await prisma.product.findMany({
+        where: { id: { in: ids } },
+      });
+      const byId = new Map(list.map((p) => [p.id, p] as const));
+      const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+      return NextResponse.json(ordered);
+    }
 
     const where: any = {};
     if (exclude) where.NOT = { id: exclude };

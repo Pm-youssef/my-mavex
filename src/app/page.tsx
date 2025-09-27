@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import HomeStats from '@/components/HomeStats';
+import RecentlyViewed from '@/components/RecentlyViewed';
 import Script from 'next/script';
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/constants';
@@ -299,6 +300,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Recently Viewed Section */}
+      <RecentlyViewed />
 
       {/* Features Section */}
       <section className="bg-[#0c1420] text-white py-20">

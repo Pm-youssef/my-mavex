@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { formatPrice } from '@/lib/utils';
-import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY, DEFAULT_SIZES, CURRENCY, SITE_NAME, SITE_URL } from '@/lib/constants';
+import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY, RECENTLY_VIEWED_STORAGE_KEY, DEFAULT_SIZES, CURRENCY, SITE_NAME, SITE_URL } from '@/lib/constants';
 import { Check, Heart, Clock, Shield, Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import ImageWithFallback from '@/components/ui/ImageWithFallback';
 import dynamic from 'next/dynamic';
@@ -114,6 +114,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
           const ids: string[] = raw ? JSON.parse(raw) : [];
           setIsFavorite(Array.isArray(ids) && data?.id ? ids.includes(data.id) : false);
+        } catch {}
+
+        // Track recently viewed products (keep unique, most recent first, max 12)
+        try {
+          if (data?.id) {
+            const key = RECENTLY_VIEWED_STORAGE_KEY;
+            const raw = localStorage.getItem(key) || '[]';
+            const arr: string[] = Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
+            const next = [data.id, ...arr.filter((x) => x !== data.id)].slice(0, 12);
+            localStorage.setItem(key, JSON.stringify(next));
+            window.dispatchEvent(new CustomEvent('recentlyViewedUpdated'));
+          }
         } catch {}
       })
       .catch(error => {

@@ -82,6 +82,11 @@ export default async function RootLayout({
   const UMAMI_SCRIPT_URL = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL || 'https://analytics.umami.is/script.js';
   return (
     <html lang="ar" dir="rtl">
+      <head>
+        <meta name="theme-color" content={theme} />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" href="/icon.png" />
+      </head>
       <body className={`${cairo.variable} ${inter.variable} font-arabic antialiased`} style={styleVars}>
         <a
           href="#main"
@@ -104,6 +109,14 @@ export default async function RootLayout({
             <ToastContainer />
             {/* Public settings injection for client-side utilities */}
             <Script id="public-settings" strategy="beforeInteractive">{`window.__PUBLIC_SETTINGS__ = ${JSON.stringify(settings || {})};`}</Script>
+            {/* PWA: register service worker */}
+            <Script id="sw-register" strategy="afterInteractive">{
+              `if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').catch(() => {});
+                });
+              }`
+            }</Script>
             {/* JSON-LD: Organization */}
             <Script
               id="org-jsonld"
