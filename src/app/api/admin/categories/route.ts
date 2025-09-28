@@ -229,3 +229,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create category', message: String(error?.message || error), code: error?.code }, { status: 500 });
   }
 }
+

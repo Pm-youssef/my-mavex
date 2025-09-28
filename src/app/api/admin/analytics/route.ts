@@ -92,3 +92,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to compute analytics' }, { status: 500 });
   }
 }
+
