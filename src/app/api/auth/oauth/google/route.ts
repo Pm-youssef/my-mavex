@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { cookies, headers } from 'next/headers'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 function getOrigin(req: Request) {
   const url = new URL(req.url)
   const hdrs = headers()

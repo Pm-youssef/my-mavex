@@ -5,6 +5,10 @@ import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 import { productSchema } from '@/lib/validation';
 import { FALLBACK_IMAGE_URL } from '@/lib/constants';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Normalize local asset paths to always start with a leading slash
 // e.g., "img/a.png" -> "/img/a.png", "uploads/a.png" -> "/uploads/a.png"
 const normalizeLocalPath = (v: string | undefined | null) => {

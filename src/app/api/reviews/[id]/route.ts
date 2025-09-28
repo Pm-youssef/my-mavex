@@ -4,6 +4,10 @@ import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 import { reviewUpdateSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // PATCH /api/reviews/:id  (admin only)
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try {

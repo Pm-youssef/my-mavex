@@ -4,6 +4,10 @@ import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getUserCookieName, signUserJwt } from '@/lib/auth'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 function getOrigin(req: Request) {
   const url = new URL(req.url)
   const hdrs = headers()

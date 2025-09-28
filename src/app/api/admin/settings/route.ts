@@ -3,6 +3,10 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function hasSettingsModel(): boolean {
   const anyPrisma = prisma as any;
   return !!anyPrisma?.siteSettings && typeof anyPrisma.siteSettings.findUnique === 'function';
