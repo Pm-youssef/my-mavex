@@ -230,14 +230,14 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative px-3 py-2 text-base font-semibold transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] group hover:translate-y-[1px] ${
+                  className={`relative px-3 py-2 text-base font-semibold transition-all duration-300 ease-\[cubic-bezier(.22,1,.36,1)\] group hover:translate-y-[1px] ${
                     isScrolled ? 'text-[#0c1420]' : 'text-white'
                   } ${pathname === link.href ? 'text-yellow-500 font-bold' : 'hover:text-yellow-500'}`}
                   aria-current={pathname === link.href ? 'page' : undefined}
                 >
                   <span className="relative z-10 flex items-center leading-none">{link.label}</span>
                   <span
-                    className={`absolute bottom-0 right-0 h-0.5 bg-yellow-500 transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
+                    className={`absolute bottom-0 right-0 h-0.5 bg-yellow-500 transition-all duration-300 ease-\[cubic-bezier(.22,1,.36,1)\] ${
                       pathname === link.href ? 'w-full' : 'w-0 group-hover:w-full'
                     }`}
                   />

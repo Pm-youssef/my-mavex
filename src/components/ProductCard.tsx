@@ -174,7 +174,7 @@ export default function ProductCard({
             <div className="h-full w-full animate-pulse bg-gradient-to-b from-gray-200 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800" />
           </div>
           {/* Zoom wrapper to scale image on hover (premium smooth) */}
-          <div className="absolute inset-0 origin-center will-change-transform transform-gpu scale-100 transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] hover:scale-110 group-hover:scale-110">
+          <div className="absolute inset-0 origin-center will-change-transform transform-gpu scale-100 transition-transform duration-500 ease-\[cubic-bezier(.22,1,.36,1)\] hover:scale-110 group-hover:scale-110">
             {/* Base image */}
             <ImageWithFallback
               src={product.thumbnailUrl || product.imageUrl}
@@ -194,7 +194,7 @@ export default function ProductCard({
                 alt={`${product.name} hover`}
                 fill
                 sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                className="object-cover w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-[cubic-bezier(.22,1,.36,1)]"
+                className="object-cover w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-\[cubic-bezier(.22,1,.36,1)\]"
                 priority={false}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="

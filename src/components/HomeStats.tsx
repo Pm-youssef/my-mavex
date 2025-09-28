@@ -55,7 +55,7 @@ export default function HomeStats() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div className="group cursor-pointer">
             <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none">
-              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
+              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-\[cubic-bezier(.22,1,.36,1)\] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
                 <div className="text-3xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors duration-500">
                   <Counter to={500} />
                 </div>
@@ -67,7 +67,7 @@ export default function HomeStats() {
           </div>
           <div className="group cursor-pointer">
             <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '100ms' }}>
-              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
+              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-\[cubic-bezier(.22,1,.36,1)\] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
                 <div className="text-3xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors duration-500">
                   <Counter to={1000} />
                 </div>
@@ -79,7 +79,7 @@ export default function HomeStats() {
           </div>
           <div className="group cursor-pointer">
             <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '200ms' }}>
-              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
+              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-\[cubic-bezier(.22,1,.36,1)\] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
                 <div className="text-3xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors duration-500">
                   <Counter to={50} />
                 </div>
@@ -91,7 +91,7 @@ export default function HomeStats() {
           </div>
           <div className="group cursor-pointer">
             <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-700 motion-reduce:animate-none" style={{ animationDelay: '300ms' }}>
-              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
+              <div className="inline-block origin-center transform-gpu will-change-transform transition-transform ease-\[cubic-bezier(.22,1,.36,1)\] group-hover:scale-105" style={{ transitionDuration: '300ms' }}>
                 <div className="text-3xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors duration-500">
                   24/7
                 </div>
