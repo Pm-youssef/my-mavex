@@ -11,6 +11,7 @@ import { useCart } from '@/hooks/useCart';
 import { useSession } from '@/hooks/useSession';
 import { useRouter } from 'next/navigation';
 import { trackFavoriteAdded, trackFavoriteRemoved } from '@/lib/analytics';
+import { toastWarning } from '@/components/ui/Toast';
 
 interface Product {
   id: string;
@@ -324,7 +325,10 @@ export default function ProductCard({
                 const requireSize =
                   Array.isArray(product.variants) &&
                   product.variants.length > 0;
-                if (requireSize && !selectedSize) return;
+                if (requireSize && !selectedSize) {
+                  toastWarning({ title: 'اختر المقاس', description: 'يرجى اختيار المقاس قبل الإضافة إلى السلة' });
+                  return;
+                }
                 addToCart(
                   {
                     id: product.id,

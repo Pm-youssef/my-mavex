@@ -1,4 +1,29 @@
-export default function HomePage() {
+import prisma from '@/lib/prisma'
+import ProductCard from '@/components/ProductCard'
+
+export const revalidate = 60
+
+export default async function HomePage() {
+  const productsRaw = await prisma.product.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+    include: { variants: true }
+  })
+  const products = productsRaw.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    originalPrice: Number(p.originalPrice || 0),
+    discountedPrice: Number(p.discountedPrice ?? p.originalPrice ?? 0),
+    imageUrl: p.imageUrl,
+    thumbnailUrl: p.thumbnailUrl ?? null,
+    hoverImageUrl: p.hoverImageUrl ?? null,
+    stock: Number(p.stock || 0),
+    variants: Array.isArray(p.variants)
+      ? p.variants.map((v: any) => ({ id: v.id, size: v.size, stock: Number(v.stock || 0) }))
+      : [],
+  }))
+
   return (
     <>
       {/* Hero */}
@@ -54,31 +79,24 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Secondary section */}
+      {/* Featured products using same ProductCard styling */}
       <section className="light-section py-16">
         <div className="mavex-container">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-black text-[#0c1420]">اختيارات مميّزة</h2>
-            <p className="text-gray-600 mt-2">تعرّف على أفضل القطع الأكثر طلبًا هذا الأسبوع</p>
+            <h2 className="text-3xl md:text-4xl font-black text-[#0c1420]">الأكثر تميزًا</h2>
+            <p className="text-gray-600 mt-2">منتجات مختارة حديثًا من مجموعتنا</p>
             <div className="royal-divider" />
           </div>
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1,2,3].map((i) => (
-              <div key={i} className="modern-card hover-lift">
-                <div className="h-48 bg-gray-100" />
-                <div className="p-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-extrabold text-[#0c1420] truncate">تيشيرت كلاسيك {i}</h3>
-                    <span className="text-yellow-600 font-black">EGP 299</span>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-600 line-clamp-2">خامة مريحة بتصميم بسيط يناسب جميع الإطلالات اليومية.</p>
-                  <a href="/products" className="mt-4 inline-block btn-brand-dark px-4 py-2">تسوق المنتج</a>
-                </div>
-              </div>
+            {products.map((p) => (
+              <ProductCard key={p.id} product={p as any} />
             ))}
+          </div>
+          <div className="mt-10 text-center">
+            <a href="/products" className="inline-block btn-brand-dark px-6 py-3">عرض كل المنتجات</a>
           </div>
         </div>
       </section>
     </>
-  );
+  )
 }
