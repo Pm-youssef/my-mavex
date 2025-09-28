@@ -163,6 +163,15 @@ export default function CartPage() {
     null
   );
 
+  // Billing address (optional different from shipping)
+  const [billingDifferent, setBillingDifferent] = useState(false);
+  const [billingInfo, setBillingInfo] = useState({
+    address: '',
+    city: '',
+    governorate: '',
+    postalCode: '',
+  });
+
   // Sticky/fixed Order Summary behavior (robust fallback)
   const summaryContainerRef = useRef<HTMLDivElement | null>(null);
   const summaryCardRef = useRef<HTMLDivElement | null>(null);
@@ -177,7 +186,7 @@ export default function CartPage() {
       const card = summaryCardRef.current;
       if (!container || !card) return;
 
-      const enable = window.innerWidth >= 768; // md and up
+      const enable = false; // disable sticky; let it scroll normally
       if (!enable) {
         setSummaryMode('static');
         try {
@@ -774,6 +783,13 @@ export default function CartPage() {
       errors.city = 'اختر المدينة';
     }
 
+    // If billing address is different, validate minimal fields
+    if (billingDifferent) {
+      if (!billingInfo.address.trim()) errors.billingAddress = 'عنوان الفواتير مطلوب';
+      if (!billingInfo.governorate) errors.billingGovernorate = 'اختر محافظة الفواتير';
+      if (!billingInfo.city) errors.billingCity = 'اختر مدينة الفواتير';
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -959,14 +975,19 @@ export default function CartPage() {
           customerName: `${customerInfo.name} ${customerInfo.lastName}`.trim(),
           customerEmail: customerInfo.email,
           customerPhone: customerInfo.phone,
-          customerAddress: customerInfo.address || '',
-          customerCity: customerInfo.city || '',
-          customerGovernorate: customerInfo.governorate || '',
-          customerPostalCode: customerInfo.postalCode || '',
+          customerAddress: customerInfo.address?.trim() ? customerInfo.address : undefined,
+          customerCity: customerInfo.city?.trim() ? customerInfo.city : undefined,
+          customerGovernorate: customerInfo.governorate?.trim() ? customerInfo.governorate : undefined,
+          customerPostalCode: customerInfo.postalCode?.trim() ? customerInfo.postalCode : undefined,
           paymentMethod: 'COD',
           shippingMethod: shippingMethod,
           couponCode: appliedCoupon?.code || '',
           discount: discountAmount || 0,
+          billingDifferent,
+          billingAddress: billingDifferent && billingInfo.address.trim() ? billingInfo.address : undefined,
+          billingCity: billingDifferent && billingInfo.city.trim() ? billingInfo.city : undefined,
+          billingGovernorate: billingDifferent && billingInfo.governorate.trim() ? billingInfo.governorate : undefined,
+          billingPostalCode: billingDifferent && billingInfo.postalCode.trim() ? billingInfo.postalCode : undefined,
         }),
       });
 
@@ -1547,26 +1568,97 @@ export default function CartPage() {
                 <h2 className="text-2xl font-bold text-[#0c1420] mb-6">
                   عنوان الفواتير
                 </h2>
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3 space-x-reverse">
-                    <input
-                      type="radio"
-                      name="billing"
-                      defaultChecked
-                      className="w-4 h-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"
-                    />
-                    <span className="text-gray-700">نفس عنوان الشحن</span>
-                  </label>
-                  <label className="flex items-center space-x-3 space-x-reverse">
-                    <input
-                      type="radio"
-                      name="billing"
-                      className="w-4 h-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"
-                    />
-                    <span className="text-gray-700">
-                      استخدم عنوان فواتير مختلف
-                    </span>
-                  </label>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-6">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="billing"
+                        checked={!billingDifferent}
+                        onChange={() => setBillingDifferent(false)}
+                        className="w-4 h-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"
+                      />
+                      <span className="text-gray-700">نفس عنوان الشحن</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="billing"
+                        checked={billingDifferent}
+                        onChange={() => setBillingDifferent(true)}
+                        className="w-4 h-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"
+                      />
+                      <span className="text-gray-700">استخدم عنوان فواتير مختلف</span>
+                    </label>
+                  </div>
+
+                  {billingDifferent && (
+                    <div className="space-y-4 animate-[fadeUp_.25s_ease-out_both]">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="عنوان الفواتير"
+                          value={billingInfo.address}
+                          onChange={e => setBillingInfo({ ...billingInfo, address: e.target.value })}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300 ${
+                            validationErrors.billingAddress ? 'border-red-500' : 'border-gray-200'
+                          }`}
+                        />
+                        {validationErrors.billingAddress && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.billingAddress}</p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <Select
+                          value={billingInfo.city}
+                          onValueChange={value => setBillingInfo({ ...billingInfo, city: value })}
+                        >
+                          <SelectTrigger className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300">
+                            <SelectValue placeholder="مدينة الفواتير" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {billingInfo.governorate &&
+                              getCitiesByGovernorate(billingInfo.governorate).map(city => (
+                                <SelectItem key={city} value={city}>
+                                  {city}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        {validationErrors.billingCity && (
+                          <p className="text-red-500 text-sm mt-1 col-span-1">{validationErrors.billingCity}</p>
+                        )}
+
+                        <Select
+                          value={billingInfo.governorate}
+                          onValueChange={value => setBillingInfo({ ...billingInfo, governorate: value, city: '' })}
+                        >
+                          <SelectTrigger className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300">
+                            <SelectValue placeholder="محافظة الفواتير" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {egyptGovernorates.map(g => (
+                              <SelectItem key={g.id} value={g.id}>
+                                {g.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {validationErrors.billingGovernorate && (
+                          <p className="text-red-500 text-sm mt-1 col-span-1">{validationErrors.billingGovernorate}</p>
+                        )}
+
+                        <input
+                          type="text"
+                          placeholder="الرمز البريدي (اختياري)"
+                          value={billingInfo.postalCode}
+                          onChange={e => setBillingInfo({ ...billingInfo, postalCode: e.target.value })}
+                          className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

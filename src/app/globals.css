@@ -41,6 +41,27 @@ html, body {
   .mavex-button {
     @apply bg-white hover:bg-gray-100 text-[#0c1420] font-bold py-4 px-8 rounded-none transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-white hover:border-gray-200 uppercase tracking-wider;
   }
+  /* Hero floating shapes (moved from styled-jsx) */
+  .hero-anim-float-1 { animation: heroFloat1 28s linear infinite; }
+  .hero-anim-float-2 { animation: heroFloat2 34s linear infinite; animation-delay: 3s; }
+  .hero-anim-float-3 { animation: heroFloat3 30s linear infinite; animation-delay: 6s; }
+  .hero-anim-float-4 { animation: heroFloat2 40s linear infinite; animation-delay: 9s; }
+
+  @keyframes heroFloat1 {
+    0% { transform: translate3d(0,0,0); }
+    50% { transform: translate3d(15px,-60vh,0); }
+    100% { transform: translate3d(0,-120vh,0); }
+  }
+  @keyframes heroFloat2 {
+    0% { transform: translate3d(0,0,0); }
+    50% { transform: translate3d(-20px,-60vh,0); }
+    100% { transform: translate3d(0,-120vh,0); }
+  }
+  @keyframes heroFloat3 {
+    0% { transform: translate3d(0,0,0) rotate(0deg); }
+    50% { transform: translate3d(10px,-60vh,0) rotate(10deg); }
+    100% { transform: translate3d(0,-120vh,0) rotate(20deg); }
+  }
 
   .mavex-button-secondary {
     @apply bg-transparent hover:bg-white/10 text-white font-bold py-4 px-8 rounded-none transition-all duration-300 transform hover:scale-105 hover:shadow-xl border-2 border-white hover:border-yellow-500 uppercase tracking-wider;
@@ -121,6 +142,23 @@ html, body {
   .mavex-footer {
     @apply bg-[#0c1420] text-white py-16 overflow-hidden;
   }
+
+  /* Reveal on scroll utility */
+  .reveal { opacity: 0; transform: translateY(8px); will-change: transform, opacity; }
+  .reveal.in-view { opacity: 1; transform: translateY(0); transition: opacity .42s ease-out, transform .42s cubic-bezier(.22,1,.36,1); }
+
+  /* Border sweep subtle effect */
+  .sweep-border { position: relative; overflow: hidden; }
+  .sweep-border::before {
+    content: '';
+    position: absolute; inset: 0;
+    border: 2px solid transparent;
+    background: linear-gradient(#fff,#fff) padding-box, conic-gradient(from 180deg, transparent, rgba(234,179,8,.6), transparent) border-box;
+    opacity: 0; transition: opacity .35s ease;
+    border-radius: 1rem; /* match rounded-2xl */
+    pointer-events: none;
+  }
+  .sweep-border:hover::before, .sweep-border:focus-within::before { opacity: .9; }
 
   /* Form Elements */
   .mavex-input {
@@ -565,6 +603,50 @@ html, body {
     animation: shimmer 2s infinite;
   }
 
+  /* Footer random stars twinkle */
+  .twinkle {
+    animation-name: footerTwinkle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    will-change: transform, opacity, filter;
+    border-radius: 1px;
+  }
+  @keyframes footerTwinkle {
+    0% { transform: rotate(45deg) scale(0.85); opacity: 0.35; filter: drop-shadow(0 0 0 rgba(234,179,8,0)); }
+    50% { transform: rotate(45deg) scale(1.05); opacity: 0.9; filter: drop-shadow(0 0 8px rgba(234,179,8,0.35)); }
+    100% { transform: rotate(45deg) scale(1.2); opacity: 0.6; filter: drop-shadow(0 0 4px rgba(234,179,8,0.25)); }
+  }
+
+  @keyframes footerStarDrift {
+    0% { transform: translate(0,0) rotate(45deg); }
+    100% { transform: translate(3px,-3px) rotate(45deg); }
+  }
+
+  /* Combined twinkle + drift for footer stars */
+  .twinkle-drift {
+    animation-name: footerTwinkle, footerStarDrift;
+    animation-timing-function: ease-in-out, linear;
+    animation-iteration-count: infinite, infinite;
+    animation-direction: alternate, alternate;
+    will-change: transform, opacity, filter;
+    border-radius: 1px;
+  }
+
+  .footer-float-1 { animation: footerFloat1 28s ease-in-out infinite; }
+  .footer-float-2 { animation: footerFloat2 34s ease-in-out infinite; }
+
+  @keyframes footerFloat1 {
+    0% { transform: translate3d(0,0,0); }
+    50% { transform: translate3d(12px,-10px,0); }
+    100% { transform: translate3d(0,-18px,0); }
+  }
+  @keyframes footerFloat2 {
+    0% { transform: translate3d(0,0,0); }
+    50% { transform: translate3d(-14px,-8px,0); }
+    100% { transform: translate3d(0,-16px,0); }
+  }
+
   @keyframes shimmer {
     0% {
       background-position: -200% 0;
@@ -757,49 +839,3 @@ html, body {
   }
 }
 
-/* Custom Animations */
-@layer utilities {
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  .animate-wiggle {
-    animation: wiggle 1s ease-in-out infinite;
-  }
-
-  @keyframes wiggle {
-    0%,
-    7% {
-      transform: rotateZ(0);
-    }
-    15% {
-      transform: rotateZ(-15deg);
-    }
-    20% {
-      transform: rotateZ(10deg);
-    }
-    25% {
-      transform: rotateZ(-10deg);
-    }
-    30% {
-      transform: rotateZ(6deg);
-    }
-    35% {
-      transform: rotateZ(-4deg);
-    }
-    40%,
-    100% {
-      transform: rotateZ(0);
-    }
-  }
-}

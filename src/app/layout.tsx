@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { Cairo, Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
+import TopTrustBar from '@/components/TopTrustBar';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
 import { ScrollProvider } from '@/contexts/ScrollContext';
@@ -83,9 +84,12 @@ export default async function RootLayout({
         <Providers>
           <ScrollProvider>
             <Header />
+            {/* Solid spacer under fixed header to avoid white seam */}
+            <div className="h-16 bg-[#0c1420]" aria-hidden />
+            <TopTrustBar />
             <main
               id="main"
-              className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 pt-4 sm:pt-6"
+              className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 pt-0 sm:pt-0"
             >
               {children}
             </main>

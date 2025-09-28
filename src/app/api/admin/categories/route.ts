@@ -86,13 +86,29 @@ export async function GET(req: NextRequest) {
       : {};
 
     if (hasCategoryModel()) {
+      // Only select columns that actually exist in the DB to avoid migrations mismatch
+      const cols = await getCategoryColumns();
+      const baseSelect: any = {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        displayOrder: true,
+        parentId: true,
+        createdAt: true,
+      };
+      if (cols.has('imageurl')) baseSelect.imageUrl = true;
+      if (cols.has('bannerurl')) baseSelect.bannerUrl = true;
+      if (cols.has('thumbnailurl')) baseSelect.thumbnailUrl = true;
+      if (cols.has('iconurl')) baseSelect.iconUrl = true;
+
       const [items, total] = await Promise.all([
         (prisma as any).category.findMany({
           where,
           orderBy: { [sort]: dir },
           skip: (page - 1) * pageSize,
           take: pageSize,
-          include: { _count: { select: { products: true } } },
+          select: { ...baseSelect, _count: { select: { products: true } } },
         }),
         (prisma as any).category.count({ where }),
       ]);
@@ -101,15 +117,15 @@ export async function GET(req: NextRequest) {
         id: c.id,
         name: c.name,
         slug: c.slug,
-        description: c.description,
-        displayOrder: c.displayOrder,
-        parentId: c.parentId,
-        imageUrl: c.imageUrl,
-        bannerUrl: c.bannerUrl,
-        thumbnailUrl: c.thumbnailUrl,
-        iconUrl: c.iconUrl,
+        description: c.description ?? '',
+        displayOrder: c.displayOrder ?? 0,
+        parentId: c.parentId ?? null,
+        imageUrl: (c as any).imageUrl ?? null,
+        bannerUrl: (c as any).bannerUrl ?? null,
+        thumbnailUrl: (c as any).thumbnailUrl ?? null,
+        iconUrl: (c as any).iconUrl ?? null,
         productsCount: (c as any)._count?.products || 0,
-        createdAt: c.createdAt,
+        createdAt: (c as any).createdAt,
       }));
       return NextResponse.json({ items: shaped, total, page, pageSize });
     } else {

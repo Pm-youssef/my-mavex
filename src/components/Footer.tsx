@@ -7,9 +7,27 @@ import { Facebook, Instagram, Twitter, Mail, MapPin } from 'lucide-react'
 
 export default function Footer() {
   const [settings, setSettings] = useState<any | null>(null)
+  const [footerStars, setFooterStars] = useState<Array<{ left: number; top: number; size: number; opacity: number; duration: number; delay: number }>>([])
   useEffect(() => {
     try { const s = (window as any).__PUBLIC_SETTINGS__; if (s) setSettings(s); } catch {}
     ;(async()=>{ try { const r = await fetch('/api/settings', { cache: 'no-store' }); const j = await r.json(); setSettings(j);} catch {} })()
+  }, [])
+
+  // Generate random yellow stars (client-only)
+  useEffect(() => {
+    try {
+      const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false
+      const count = isMobile ? 16 : 36
+      const stars = Array.from({ length: count }, () => ({
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        size: 1.4 + Math.random() * 2.4,
+        opacity: 0.35 + Math.random() * 0.5,
+        duration: 2.8 + Math.random() * 5.2,
+        delay: Math.random() * 6,
+      }))
+      setFooterStars(stars)
+    } catch {}
   }, [])
 
   const socialLinksArray = [
@@ -22,8 +40,45 @@ export default function Footer() {
   const address = settings?.address || CONTACT_INFO.address
 
   return (
-    <footer className="mavex-footer">
-      <div className="mavex-container">
+    <footer className="mavex-footer relative">
+      {/* Stars + geometric shapes overlay */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden z-0" suppressHydrationWarning>
+        {/* Random yellow stars */}
+        {footerStars.map((s, i) => (
+          <span
+            key={i}
+            className="absolute rotate-45 twinkle-drift"
+            style={{
+              left: `${s.left}%`,
+              top: `${s.top}%`,
+              width: s.size,
+              height: s.size,
+              opacity: s.opacity,
+              animationDuration: `${s.duration}s, ${s.duration * 1.8}s`,
+              animationDelay: `${s.delay}s, ${s.delay / 2}s`,
+              background: 'linear-gradient(90deg, rgba(234,179,8,0.95), rgba(234,179,8,0.75))',
+              boxShadow: '0 0 10px rgba(234,179,8,0.35), 0 0 2px rgba(255,255,255,0.35)',
+            }}
+            aria-hidden
+          />
+        ))}
+        {/* Rings and squares */}
+        <div className="hidden md:block absolute -top-16 left-8 w-16 h-16 rounded-full border border-yellow-500/30 opacity-45 footer-float-1" />
+        <div className="hidden md:block absolute -bottom-20 right-24 w-12 h-12 rounded-md border border-yellow-500/30 opacity-50 rotate-6 footer-float-2" />
+        <div className="hidden lg:block absolute -bottom-10 left-1/3 w-24 h-24 border-2 border-yellow-500/20 opacity-40 rotate-12 footer-float-1" />
+        {/* Triangles for higher clarity (top and bottom) */}
+        <div
+          className="hidden sm:block absolute top-10 footer-float-2"
+          style={{ left: '12%', width: '56px', height: '56px', clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', background: 'rgba(234,179,8,0.10)' }}
+          aria-hidden
+        />
+        <div
+          className="hidden sm:block absolute bottom-8 footer-float-1"
+          style={{ right: '14%', width: '52px', height: '52px', background: 'rgba(234,179,8,0.08)' }}
+          aria-hidden
+        />
+      </div>
+      <div className="mavex-container relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">

@@ -215,7 +215,7 @@ export default function ProductsClient({ products, categories }: Props) {
   const minPct = Math.max(0, Math.min(100, Math.round(((priceRange.min - uiMinPrice) / denom) * 100)));
   const maxPct = Math.max(0, Math.min(100, Math.round(((priceRange.max - uiMinPrice) / denom) * 100)));
   const sliderTrackStyle: React.CSSProperties = {
-    background: `linear-gradient(to right, #E5E7EB ${minPct}%, #0c1420 ${minPct}%, #0c1420 ${maxPct}%, #E5E7EB ${maxPct}%)`,
+    background: `linear-gradient(to right, #E5E7EB ${minPct}%, #eab308 ${minPct}%, #eab308 ${maxPct}%, #E5E7EB ${maxPct}%)`,
   };
 
   // Animated segmented highlight
@@ -249,7 +249,7 @@ export default function ProductsClient({ products, categories }: Props) {
       </div>
 
       {/* Search and Filters - modern design */}
-      <div className="modern-filter rounded-3xl shadow-2xl border border-white/40 bg-white/60 backdrop-blur-md p-6 md:p-8 mb-12 sticky top-24 z-10">
+      <div className="modern-filter rounded-2xl shadow-md border border-[#0c1420]/10 bg-white/80 backdrop-blur-sm p-5 md:p-6 mb-12 sticky top-24 z-10">
         <div className="flex flex-col xl:flex-row gap-6 xl:items-center xl:justify-between">
           {/* Search */}
           <div className="w-full lg:max-w-sm">
@@ -336,6 +336,25 @@ export default function ProductsClient({ products, categories }: Props) {
             <div className="w-full">
               {/* Slider track */}
               <div className="relative h-8 flex items-center" dir="ltr">
+                {/* Custom track (behind inputs) */}
+                <div
+                  className="absolute left-0 right-0 pointer-events-none"
+                  style={{ top: '50%', transform: 'translateY(-50%)', height: 6, borderRadius: 9999, background: '#E5E7EB' }}
+                  aria-hidden
+                />
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: `${minPct}%`,
+                    width: `${Math.max(0, maxPct - minPct)}%`,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    height: 6,
+                    borderRadius: 9999,
+                    background: '#eab308',
+                  }}
+                  aria-hidden
+                />
                 <input
                   type="range"
                   min={uiMinPrice}
@@ -353,8 +372,8 @@ export default function ProductsClient({ products, categories }: Props) {
                   onTouchEnd={() => setActiveThumb(null)}
                   onBlur={() => setActiveThumb(null)}
                   data-active={activeThumb === 'min'}
-                  className={`absolute left-0 right-0 appearance-none w-full bg-transparent h-2 rounded-full outline-none ${activeThumb === 'min' ? 'z-20' : 'z-10'}`}
-                  style={{ ...sliderTrackStyle, top: 6 }}
+                  className={`absolute left-0 right-0 appearance-none w-full bg-transparent h-2 rounded-full outline-none z-40`}
+                  style={{ top: '50%', transform: 'translateY(-50%)', background: 'transparent' }}
                 />
                 <input
                   type="range"
@@ -373,24 +392,10 @@ export default function ProductsClient({ products, categories }: Props) {
                   onTouchEnd={() => setActiveThumb(null)}
                   onBlur={() => setActiveThumb(null)}
                   data-active={activeThumb === 'max'}
-                  className={`absolute left-0 right-0 appearance-none w-full bg-transparent h-2 rounded-full outline-none ${activeThumb === 'max' ? 'z-20' : 'z-10'}`}
-                  style={{ ...sliderTrackStyle, top: 2 }}
+                  className={`absolute left-0 right-0 appearance-none w-full bg-transparent h-2 rounded-full outline-none z-30`}
+                  style={{ top: '50%', transform: 'translateY(-50%)', background: 'transparent' }}
                 />
-                {/* Value bubbles */}
-                <div className="pointer-events-none select-none absolute inset-0">
-                  <span
-                    className="absolute -top-7 text-[11px] font-extrabold text-[#0c1420] bg-white border border-gray-200 rounded-full px-2 py-0.5 shadow-sm transition-all"
-                    style={{ left: `clamp(8px, calc(${minPct}% - 14px), calc(100% - 28px))` }}
-                  >
-                    {formatAr(priceRange.min)} جنيه
-                  </span>
-                  <span
-                    className="absolute -top-7 text-[11px] font-extrabold text-[#0c1420] bg-white border border-gray-200 rounded-full px-2 py-0.5 shadow-sm transition-all"
-                    style={{ left: `clamp(8px, calc(${maxPct}% - 18px), calc(100% - 28px))` }}
-                  >
-                    {formatAr(priceRange.max)} جنيه
-                  </span>
-                </div>
+                {/* No inline labels for a cleaner look */}
               </div>
               {/* Micro range label under slider */}
               <div className="mt-1 text-[11px] text-gray-400 text-right">{formatAr(0)} — أقصى السعر {formatAr(globalMaxPrice)}</div>
@@ -493,8 +498,7 @@ export default function ProductsClient({ products, categories }: Props) {
         /* Numeric pills hover */
         .modern-filter input[type='number'] { transition: box-shadow .15s ease, border-color .15s ease; }
         .modern-filter input[type='number']:focus { box-shadow: 0 0 0 3px rgba(12,20,32,0.15); }
-        /* Slider hover thickness */
-        .modern-filter input[type='range']:hover::-webkit-slider-runnable-track { height: 8px; }
+        /* Slider track */
         .modern-filter input[type='range']::-webkit-slider-runnable-track { height: 6px; border-radius: 9999px; }
         .modern-filter input[type='range']::-moz-range-track { height: 6px; border-radius: 9999px; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -503,24 +507,25 @@ export default function ProductsClient({ products, categories }: Props) {
         /* WebKit */
         input[type='range']::-webkit-slider-thumb {
           -webkit-appearance: none; appearance: none;
-          height: 20px; width: 20px; border-radius: 9999px; background: #0c1420;
-          border: 2px solid #fff; box-shadow: 0 0 0 3px rgba(12,20,32,0.15); cursor: pointer;
+          height: 14px; width: 14px; border-radius: 9999px; background: #ffffff;
+          border: 2px solid rgba(12,20,32,0.85); box-shadow: 0 0 0 3px rgba(255,255,255,1); cursor: pointer;
           transition: box-shadow 0.2s ease, transform 0.15s ease;
+          margin-top: -4px; /* center thumb on 6px track */
         }
         input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.05); }
-        input[type='range']:focus::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(12,20,32,0.25); }
-        input[type='range'][data-active='true']::-webkit-slider-thumb { transform: scale(1.12); }
+        input[type='range']:focus::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(234,179,8,0.35); }
+        input[type='range'][data-active='true']::-webkit-slider-thumb { transform: scale(1.08); }
         /* Firefox */
         input[type='range']::-moz-range-thumb {
-          height: 20px; width: 20px; border-radius: 9999px; background: #0c1420;
-          border: 2px solid #fff; box-shadow: 0 0 0 3px rgba(12,20,32,0.15); cursor: pointer;
+          height: 14px; width: 14px; border-radius: 9999px; background: #ffffff;
+          border: 2px solid rgba(12,20,32,0.85); box-shadow: 0 0 0 3px rgba(255,255,255,1); cursor: pointer;
           transition: box-shadow 0.2s ease, transform 0.15s ease;
         }
-        input[type='range']::-moz-range-progress { background-color: #0c1420; height: 6px; }
+        input[type='range']::-moz-range-progress { background-color: #eab308; height: 6px; }
         input[type='range']::-moz-range-track { background-color: #E5E7EB; height: 6px; border: none; }
         input[type='range']::-moz-range-thumb:hover { transform: scale(1.05); }
-        input[type='range']:focus::-moz-range-thumb { box-shadow: 0 0 0 6px rgba(12,20,32,0.25); }
-        input[type='range'][data-active='true']::-moz-range-thumb { transform: scale(1.12); }
+        input[type='range']:focus::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(234,179,8,0.35); }
+        input[type='range'][data-active='true']::-moz-range-thumb { transform: scale(1.08); }
       `}</style>
 
       {/* Results Count */}

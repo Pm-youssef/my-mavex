@@ -113,11 +113,39 @@ export const checkoutSchema = z.object({
     .optional(),
   customerPostalCode: z
     .string()
-    .min(3, 'الرمز البريدي يجب أن يكون 3 أحرف على الأقل')
-    .max(10, 'الرمز البريدي طويل جداً')
-    .optional(),
+    .trim()
+    .optional()
+    .refine(
+      (v) => v == null || v.length === 0 || (v.length >= 3 && v.length <= 10),
+      'الرمز البريدي يجب أن يكون بين 3 و 10 أحرف عند تعبئته'
+    ),
   paymentMethod: z.string().min(1, 'طريقة الدفع مطلوبة').default('COD'),
   shippingMethod: z.string().min(1, 'طريقة الشحن مطلوبة').default('STANDARD'),
+  // Optional billing address (different from shipping)
+  billingDifferent: z.boolean().optional(),
+  billingAddress: z
+    .string()
+    .min(6, 'عنوان الفواتير يجب أن يكون 6 أحرف على الأقل')
+    .max(500, 'عنوان الفواتير طويل جداً')
+    .optional(),
+  billingCity: z
+    .string()
+    .min(2, 'مدينة الفواتير يجب أن تكون حرفين على الأقل')
+    .max(100, 'مدينة الفواتير طويلة جداً')
+    .optional(),
+  billingGovernorate: z
+    .string()
+    .min(2, 'محافظة الفواتير يجب أن تكون حرفين على الأقل')
+    .max(100, 'محافظة الفواتير طويلة جداً')
+    .optional(),
+  billingPostalCode: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (v) => v == null || v.length === 0 || (v.length >= 3 && v.length <= 10),
+      'الرمز البريدي للفواتير يجب أن يكون بين 3 و 10 أحرف عند تعبئته'
+    ),
   items: z
     .array(
       z.object({

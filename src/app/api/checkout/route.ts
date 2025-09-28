@@ -10,6 +10,17 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+async function getOrderColumns(): Promise<Set<string>> {
+  try {
+    const rows = await (prisma as any).$queryRawUnsafe(
+      `SELECT lower(column_name) AS c FROM information_schema.columns WHERE table_schema = 'public' AND lower(table_name) = 'order'`
+    ) as Array<{ c: string }>;
+    return new Set((rows || []).map(r => r.c));
+  } catch {
+    return new Set<string>();
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Rate limit: 10 requests / 10 minutes per IP
@@ -31,6 +42,11 @@ export async function POST(request: NextRequest) {
       shippingMethod = 'STANDARD',
       couponCode = '',
       discount: clientDiscount = 0,
+      billingDifferent = false,
+      billingAddress = '',
+      billingCity = '',
+      billingGovernorate = '',
+      billingPostalCode = '',
     } = body;
 
     const parsed = checkoutSchema.safeParse({
@@ -44,6 +60,11 @@ export async function POST(request: NextRequest) {
       customerPostalCode,
       paymentMethod,
       shippingMethod,
+      billingDifferent,
+      billingAddress,
+      billingCity,
+      billingGovernorate,
+      billingPostalCode,
     });
     if (!parsed.success) {
       return NextResponse.json(
@@ -213,6 +234,16 @@ export async function POST(request: NextRequest) {
       if (sessionUser?.id) {
         (orderData as any).userId = sessionUser.id;
       }
+      // Conditionally include billing fields if columns exist
+      try {
+        const cols = await getOrderColumns();
+        if (cols.has('billingdifferent')) (orderData as any).billingDifferent = Boolean(billingDifferent);
+        if (cols.has('billingaddress') && billingAddress) (orderData as any).billingAddress = String(billingAddress);
+        if (cols.has('billingcity') && billingCity) (orderData as any).billingCity = String(billingCity);
+        if (cols.has('billinggovernorate') && billingGovernorate) (orderData as any).billingGovernorate = String(billingGovernorate);
+        if (cols.has('billingpostalcode') && billingPostalCode) (orderData as any).billingPostalCode = String(billingPostalCode);
+      } catch {}
+
       const createdOrder = await tx.order.create({
         data: orderData,
         include: { items: { include: { product: true } } },

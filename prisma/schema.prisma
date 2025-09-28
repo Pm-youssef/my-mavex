@@ -110,6 +110,12 @@ model Order {
   customerCity   String?
   customerGovernorate String?
   customerPostalCode String?
+  // Optional different billing address
+  billingDifferent  Boolean?  @default(false)
+  billingAddress    String?
+  billingCity       String?
+  billingGovernorate String?
+  billingPostalCode String?
   totalAmount   Float
   subtotal      Float
   shippingCost  Float       @default(0)

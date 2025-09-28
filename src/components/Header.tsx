@@ -154,8 +154,8 @@ export default function Header() {
       <header
         className={`fixed ${publicSettings?.promoEnabled && !promoDismissed ? 'top-8' : 'top-0'} left-0 right-0 z-40 transition-all duration-500 ease-in-out ${
           isScrolled
-            ? 'bg-white/95 shadow-sm border-b border-yellow-500/20'
-            : 'bg-[#0c1420]/95 shadow-sm border-b border-yellow-500/20'
+            ? 'bg-white/95 shadow-none'
+            : 'bg-[#0c1420] shadow-none'
         } ${
           isHeaderVisible
             ? 'translate-y-0 opacity-100'
@@ -172,7 +172,7 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <span
-                  className={`${brandFont.className} uppercase font-extrabold transition-all duration-300 flex items-center leading-none select-none tracking-[0.2em] md:tracking-[0.25em] text-3xl ${
+                  className={`${brandFont.className} uppercase font-extrabold transition-all duration-300 flex items-center leading-none select-none tracking-[0.14em] md:tracking-[0.16em] text-[28px] md:text-3xl ${
                     isScrolled
                       ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#0c1420] to-[#a16207]'
                       : 'text-transparent bg-clip-text bg-gradient-to-r from-white to-yellow-300'
@@ -225,12 +225,12 @@ export default function Header() {
             {/* Search removed */}
 
             {/* Desktop Navigation */}
-            <nav className="order-2 hidden md:flex flex-1 items-center justify-center space-x-6 space-x-reverse h-16">
+            <nav className="order-2 hidden md:flex flex-1 items-center justify-center space-x-5 space-x-reverse h-16">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative px-3 py-2 text-base font-semibold transition-all duration-300 ease-\[cubic-bezier(.22,1,.36,1)\] group hover:translate-y-[1px] ${
+                  className={`relative px-2.5 py-2 text-base font-semibold transition-all duration-300 ease-\[cubic-bezier(.22,1,.36,1)\] group ${
                     isScrolled ? 'text-[#0c1420]' : 'text-white'
                   } ${pathname === link.href ? 'text-yellow-500 font-bold' : 'hover:text-yellow-500'}`}
                   aria-current={pathname === link.href ? 'page' : undefined}
