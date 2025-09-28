@@ -1,5 +1,8 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { BarChart3, TrendingUp, Users, ShoppingBag, RefreshCw, LineChart, PieChart, ArrowUpRight, ArrowDownRight, ExternalLink } from 'lucide-react'
 import useSWR from 'swr'
 import { useMemo, useState, useEffect, useRef } from 'react'
