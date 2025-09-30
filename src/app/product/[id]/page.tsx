@@ -86,40 +86,53 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    fetch(`/api/products/${params.id}`)
-      .then(res => res.json())
-      .then(data => {
-        
-        if (data) {
-          data.originalPrice = Number(data.originalPrice);
-          data.discountedPrice = Number(data.discountedPrice);
-          data.stock = Number(data.stock);
-          
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/products/${params.id}`, { cache: 'no-store' });
+        if (!res.ok) {
+          setProduct(null);
+          return;
         }
+        const data = await res.json();
+        if (!data || (typeof data === 'object' && data !== null && 'error' in data)) {
+          setProduct(null);
+          return;
+        }
+
+        // Normalize numeric fields
+        try {
+          (data as any).originalPrice = Number((data as any).originalPrice);
+          (data as any).discountedPrice = Number((data as any).discountedPrice);
+          (data as any).stock = Number((data as any).stock);
+        } catch {}
+
         setProduct(data);
-        setLoading(false);
+
         // Initialize gallery selected image
         try {
           const imgs = [
-            data?.imageUrl,
-            data?.hoverImageUrl,
-            data?.image2Url,
-            data?.image3Url,
+            (data as any)?.imageUrl,
+            (data as any)?.hoverImageUrl,
+            (data as any)?.image2Url,
+            (data as any)?.image3Url,
           ].filter((u: any): u is string => typeof u === 'string' && u.length > 0);
-          setSelectedImage(imgs[0] || data?.imageUrl || '');
+          setSelectedImage(imgs[0] || (data as any)?.imageUrl || '');
         } catch {}
 
         // Initialize favorite state
         try {
           const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
           const ids: string[] = raw ? JSON.parse(raw) : [];
-          setIsFavorite(Array.isArray(ids) && data?.id ? ids.includes(data.id) : false);
+          setIsFavorite(Array.isArray(ids) && (data as any)?.id ? ids.includes((data as any).id) : false);
         } catch {}
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching product:', error);
+        setProduct(null);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    load();
 
     const savedCart = localStorage.getItem(CART_STORAGE_KEY);
     if (savedCart) {
