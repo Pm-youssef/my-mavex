@@ -75,13 +75,14 @@ export async function POST(request: Request) {
         comment: comment?.trim() || undefined,
         authorId: authorId?.trim() || undefined,
         images: Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null,
-        status: 'pending',
+        // Approve by default so the user can see their review immediately after refresh
+        status: 'approved',
       } as any),
     });
 
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {
-    console.error('POST /api/reviews error:', error?.message || error);
+    console.error('POST /api/reviews error:', error?.stack || error?.message || error);
     return NextResponse.json({ error: 'Failed to create review' }, { status: 400 });
   }
 }

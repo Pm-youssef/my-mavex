@@ -155,7 +155,7 @@ export default function ProductCard({
   return (
     <>
       <div
-        className={`group relative bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-yellow-100 focus-within:ring-2 focus-within:ring-yellow-500/50 w-full mx-auto ${
+        className={`group/card relative bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-yellow-100 focus-within:ring-2 focus-within:ring-yellow-500/50 w-full mx-auto ${
           isCompact ? 'min-h-[33.6rem]' : 'min-h-[38.4rem]'
         }`}
       >
@@ -175,7 +175,7 @@ export default function ProductCard({
             <div className="h-full w-full animate-pulse bg-gradient-to-b from-gray-200 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800" />
           </div>
           {/* Zoom wrapper to scale image on hover (premium smooth) */}
-          <div className="absolute inset-0 origin-center will-change-transform transform-gpu scale-100 transition-transform duration-500 ease-\[cubic-bezier(.22,1,.36,1)\] hover:scale-110 group-hover:scale-110">
+          <div className="absolute inset-0 origin-center will-change-transform transform-gpu scale-100 transition-transform duration-500 ease-\[cubic-bezier(.22,1,.36,1)\] hover:scale-110 group-hover/card:scale-110">
             {/* Base image */}
             <ImageWithFallback
               src={product.thumbnailUrl || product.imageUrl}
@@ -195,7 +195,7 @@ export default function ProductCard({
                 alt={`${product.name} hover`}
                 fill
                 sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                className="object-cover w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-\[cubic-bezier(.22,1,.36,1)\]"
+                className="object-cover w-full h-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 ease-\[cubic-bezier(.22,1,.36,1)\]"
                 priority={false}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="
@@ -214,7 +214,7 @@ export default function ProductCard({
               } ${
                 hasDiscount
                   ? 'opacity-100 translate-y-0'
-                  : 'opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0'
+                  : 'opacity-0 translate-y-1 group-hover/card:opacity-100 group-hover/card:translate-y-0'
               }`}
             >
               {hasDiscount && discountPercent > 0 ? `خصم ${discountPercent}%` : 'جديد'}
@@ -223,7 +223,7 @@ export default function ProductCard({
 
           {/* Wishlist + Quick View (on hover) */}
           {!hideActions && (
-            <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+            <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 translate-y-1 group-hover/card:opacity-100 group-hover/card:translate-y-0 transition-all duration-300">
               <button
                 aria-label={isFavorite ? 'إزالة من المفضلة' : 'أضف إلى المفضلة'}
                 onClick={toggleFavorite}
@@ -267,7 +267,7 @@ export default function ProductCard({
 
           {/* Sizes row at bottom (on hover only) */}
           <div className="absolute inset-x-0 bottom-0 p-3">
-            <div className="opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+            <div className="opacity-0 translate-y-1 group-hover/card:opacity-100 group-hover/card:translate-y-0 transition-all duration-300">
               <div
                 className="pointer-events-auto mx-auto w-max flex flex-wrap items-center gap-1 rounded-full bg-[#0c1420]/80 border border-white/20 px-2 py-1 shadow-sm backdrop-blur-sm"
                 role="radiogroup"
@@ -316,7 +316,7 @@ export default function ProductCard({
 
         {/* CTA under photo (appears on hover) */}
         <div className="px-5 pt-3">
-          <div className="overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover:max-h-16 group-hover:opacity-100">
+          <div className="overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover/card:max-h-16 group-hover/card:opacity-100">
             <button
               type="button"
               onClick={e => {
@@ -403,7 +403,7 @@ export default function ProductCard({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {hasDiscount && discountPercent > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700 border border-rose-300 transition-transform duration-300 group-hover:scale-105">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700 border border-rose-300 transition-transform duration-300 group-hover/card:scale-105">
                   خصم {discountPercent}%
                 </span>
               )}

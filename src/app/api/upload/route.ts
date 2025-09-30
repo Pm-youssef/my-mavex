@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import { rateLimit } from '@/lib/rate-limit';
 import { cookies } from 'next/headers';
 import { getAdminCookieName, verifyAdminJwt } from '@/lib/auth';
@@ -50,7 +51,9 @@ export async function POST(request: Request) {
       .toString(36)
       .slice(2, 8)}.${ext}`;
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    // Use tmp dir (Vercel-compatible). Static serving handled by /uploads/[...path]
+    const baseTmp = os.tmpdir();
+    const uploadDir = path.join(baseTmp, 'uploads');
     await mkdir(uploadDir, { recursive: true });
     const filePath = path.join(uploadDir, fileName);
 

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import os from 'os'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 // Public upload endpoint specifically for product reviews images
 // Secured via rate limiting + strict validation. Files are stored under public/uploads/reviews
@@ -21,8 +24,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'لم يتم رفع أي ملف' }, { status: 400 })
     }
 
-    // Validate file size (<= 5MB) and ensure it's an image
-    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+    // Validate file size (<= 4MB for serverless safety) and ensure it's an image
+    const MAX_SIZE = 4 * 1024 * 1024 // 4MB
     if (file.size > MAX_SIZE) {
       return NextResponse.json({ error: 'حجم الملف كبير. الحد الأقصى 5MB' }, { status: 413 })
     }
@@ -41,14 +44,18 @@ export async function POST(request: Request) {
 
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'reviews')
+    // Write to a tmp directory compatible with Vercel serverless (ephemeral)
+    const baseTmp = os.tmpdir()
+    const uploadDir = path.join(baseTmp, 'uploads', 'reviews')
     await mkdir(uploadDir, { recursive: true })
     const filePath = path.join(uploadDir, fileName)
 
     await writeFile(filePath, buffer)
 
+    // Served by our route handler at /uploads/[...path]
     return NextResponse.json({ url: `/uploads/reviews/${fileName}` })
-  } catch (error) {
+  } catch (error: any) {
+    console.error('POST /api/reviews/upload error:', error?.stack || error?.message || error)
     return NextResponse.json({ error: 'حدث خطأ أثناء رفع الصورة' }, { status: 500 })
   }
 }
