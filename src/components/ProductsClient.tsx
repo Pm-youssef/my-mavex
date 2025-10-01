@@ -252,7 +252,7 @@ export default function ProductsClient({ products, categories }: Props) {
       </div>
 
       {/* Search and Filters - modern design */}
-      <div className="modern-filter rounded-2xl shadow-md border border-[#0c1420]/10 bg-white/80 backdrop-blur-sm p-5 md:p-6 mb-12 sticky top-24 z-10">
+      <div className="modern-filter rounded-2xl shadow-md border border-[#0c1420]/10 bg-white/80 backdrop-blur-sm p-5 md:p-6 mb-12 md:sticky md:top-24 z-10">
         <div className="flex flex-col xl:flex-row gap-6 xl:items-center xl:justify-between">
           {/* Search */}
           <div className="w-full lg:max-w-sm">
@@ -441,19 +441,17 @@ export default function ProductsClient({ products, categories }: Props) {
             </div>
           </div>
 
-          {/* In stock toggle */}
+          {/* In stock filter (mobile-friendly chip) */}
           <div className="w-full lg:w-auto order-1 xl:order-none">
             <label className="block text-xs font-bold mb-2 text-gray-500">التوفر</label>
             <button
               type="button"
               onClick={() => setShowInStockOnly(v => !v)}
-              className={`relative inline-flex items-center w-20 h-10 rounded-full transition-colors px-1 ${showInStockOnly ? 'bg-[#0c1420]' : 'bg-gray-200'}`}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-colors ${showInStockOnly ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'}`}
               aria-pressed={showInStockOnly}
-              aria-label={showInStockOnly ? 'عرض المتوفر فقط' : 'عرض الكل'}
             >
-              <span className={`inline-block w-8 h-8 bg-white rounded-full shadow transform transition-transform ${showInStockOnly ? 'translate-x-10' : 'translate-x-0'} ring-0`} />
-              <span className="absolute left-3 text-xs font-bold text-white pointer-events-none">{showInStockOnly ? 'متوفر' : ''}</span>
-              {!showInStockOnly && <span className="absolute right-3 text-xs font-bold text-gray-600 pointer-events-none">الكل</span>}
+              <span className={`inline-block w-2.5 h-2.5 rounded-full ${showInStockOnly ? 'bg-white' : 'bg-gray-400'}`} />
+              {showInStockOnly ? 'متوفر فقط' : 'عرض جميع المنتجات'}
             </button>
           </div>
         </div>

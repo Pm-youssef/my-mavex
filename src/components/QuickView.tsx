@@ -110,11 +110,11 @@ export default function QuickView({
 
       {/* Quick View Modal */}
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div className="bg-[#0c1420] text-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="bg-[#0c1420] text-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto">
           <div className="flex flex-col lg:flex-row">
             {/* Product Image */}
             <div className="lg:w-[55%]">
-              <div className="relative h-[60vh] md:h-[70vh] lg:h-[75vh]">
+              <div className="relative h-[50vh] md:h-[60vh] lg:h-[75vh]">
                 <ImageWithFallback
                   src={product.imageUrl}
                   alt={product.name}

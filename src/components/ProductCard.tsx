@@ -267,7 +267,7 @@ export default function ProductCard({
 
           {/* Sizes row at bottom (on hover only) */}
           <div className="absolute inset-x-0 bottom-0 p-3">
-            <div className="opacity-0 translate-y-1 group-hover/card:opacity-100 group-hover/card:translate-y-0 transition-all duration-300">
+            <div className="opacity-100 translate-y-0 md:opacity-0 md:translate-y-1 md:group-hover/card:opacity-100 md:group-hover/card:translate-y-0 transition-all duration-300">
               <div
                 className="pointer-events-auto mx-auto w-max flex flex-wrap items-center gap-1 rounded-full bg-[#0c1420]/80 border border-white/20 px-2 py-1 shadow-sm backdrop-blur-sm"
                 role="radiogroup"
@@ -316,7 +316,7 @@ export default function ProductCard({
 
         {/* CTA under photo (appears on hover) */}
         <div className="px-5 pt-3">
-          <div className="overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover/card:max-h-16 group-hover/card:opacity-100">
+          <div className="overflow-hidden transition-all duration-300 max-h-16 opacity-100 md:max-h-0 md:opacity-0 md:group-hover/card:max-h-16 md:group-hover/card:opacity-100">
             <button
               type="button"
               onClick={e => {
