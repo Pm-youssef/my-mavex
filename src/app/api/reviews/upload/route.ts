@@ -8,6 +8,19 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+function getMimeFromExt(ext: string): string {
+  switch (ext.toLowerCase()) {
+    case 'png': return 'image/png'
+    case 'jpg':
+    case 'jpeg': return 'image/jpeg'
+    case 'webp': return 'image/webp'
+    case 'gif': return 'image/gif'
+    case 'svg': return 'image/svg+xml'
+    case 'bmp': return 'image/bmp'
+    default: return 'application/octet-stream'
+  }
+}
+
 // Public upload endpoint specifically for product reviews images
 // Secured via rate limiting + strict validation. Files are stored under public/uploads/reviews
 export async function POST(request: Request) {
@@ -27,7 +40,7 @@ export async function POST(request: Request) {
     // Validate file size (<= 4MB for serverless safety) and ensure it's an image
     const MAX_SIZE = 4 * 1024 * 1024 // 4MB
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: 'حجم الملف كبير. الحد الأقصى 5MB' }, { status: 413 })
+      return NextResponse.json({ error: 'حجم الملف كبير. الحد الأقصى 4MB' }, { status: 413 })
     }
     if (!file.type || !file.type.startsWith('image/')) {
       return NextResponse.json({ error: 'يجب أن يكون الملف صورة' }, { status: 400 })
@@ -52,8 +65,10 @@ export async function POST(request: Request) {
 
     await writeFile(filePath, buffer)
 
-    // Served by our route handler at /uploads/[...path]
-    return NextResponse.json({ url: `/uploads/reviews/${fileName}` })
+    // Return a base64 data URL so the client can render immediately without relying on shared storage
+    const mime = file.type || getMimeFromExt(ext)
+    const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`
+    return NextResponse.json({ url: dataUrl })
   } catch (error: any) {
     console.error('POST /api/reviews/upload error:', error?.stack || error?.message || error)
     return NextResponse.json({ error: 'حدث خطأ أثناء رفع الصورة' }, { status: 500 })

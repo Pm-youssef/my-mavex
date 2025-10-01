@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Star, Pin, Trash2, X, ImagePlus, Loader2 } from "lucide-react";
-import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { toastError, toastSuccess, toastWarning } from "@/components/ui/Toast";
 
 type Review = {
@@ -345,7 +345,7 @@ export default function Reviews({ productId }: ReviewsProps) {
             {newImages.map((u, i) => (
               <div key={`${u}-${i}`} className="relative group">
                 <button type="button" onClick={() => openLightbox(newImages, i, 'new')} className="block w-full">
-                  <Image src={u} alt={`review-upload-${i}`} width={240} height={240} className="w-full h-20 object-cover rounded-md border transition-transform duration-200 hover:scale-[1.02]" />
+                  <ImageWithFallback src={u} alt={`review-upload-${i}`} width={240} height={240} className="w-full h-20 object-cover rounded-md border transition-transform duration-200 hover:scale-[1.02]" />
                 </button>
                 <button
                   type="button"
@@ -433,7 +433,7 @@ export default function Reviews({ productId }: ReviewsProps) {
                   <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                     {r.images.map((u, i) => (
                       <button key={`${r.id}-img-${i}`} type="button" className="relative block" onClick={() => openLightbox(r.images!, i, 'existing')}>
-                        <Image src={u} alt={`review-${r.id}-${i}`} width={320} height={320} className="w-full h-24 object-cover rounded-md border transition-transform duration-200 hover:scale-[1.02]" />
+                        <ImageWithFallback src={u} alt={`review-${r.id}-${i}`} width={320} height={320} className="w-full h-24 object-cover rounded-md border transition-transform duration-200 hover:scale-[1.02]" />
                       </button>
                     ))}
                   </div>
@@ -463,7 +463,7 @@ export default function Reviews({ productId }: ReviewsProps) {
           >
             <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
               <div className="relative w-full h-[70vh] md:h-[80vh]">
-                <Image
+                <ImageWithFallback
                   src={lightboxImages[lightboxIndex]}
                   alt={`review-large-${lightboxIndex}`}
                   fill

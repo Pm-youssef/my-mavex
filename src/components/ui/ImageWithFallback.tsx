@@ -25,10 +25,13 @@ export default function ImageWithFallback({
     setCurrentSrc(src && src.length > 0 ? src : fallback)
   }, [src, fallback])
 
-  // Normalize and detect local asset paths to avoid optimizer 400s for ephemeral files
+  // Normalize and detect local/data/blob sources to avoid optimizer issues
   const isHttp = /^https?:\/\//i.test(currentSrc)
-  const isLocalPath = !isHttp
-  const normalizedSrc = isLocalPath
+  const isDataOrBlob = /^(data:|blob:)/i.test(currentSrc)
+  const isLocalPath = !isHttp && !isDataOrBlob
+  const normalizedSrc = isDataOrBlob
+    ? currentSrc
+    : isLocalPath
     ? (currentSrc?.startsWith('/') ? currentSrc : `/${currentSrc}`)
     : currentSrc
 
@@ -37,8 +40,8 @@ export default function ImageWithFallback({
       {...rest}
       alt={alt}
       src={normalizedSrc}
-      // For local assets under public (e.g., /uploads, /img), skip the optimizer to avoid 400
-      unoptimized={isLocalPath}
+      // Skip optimizer for local and data/blob sources
+      unoptimized={isLocalPath || isDataOrBlob}
       onError={(e) => {
         if (currentSrc !== fallback) setCurrentSrc(fallback)
         if (onError) onError(e)

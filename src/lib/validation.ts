@@ -2,12 +2,13 @@ import { z } from 'zod';
 
 import { FALLBACK_IMAGE_URL } from '@/lib/constants';
 
-// قبول كل من روابط http/https وأيضًا المسارات المحلية مع أو بدون سلاش بادئ (img/, /img/, uploads/, /uploads/)
+// قبول http/https و data:/blob: وأيضًا المسارات المحلية مع أو بدون سلاش بادئ (img/, /img/, uploads/, /uploads/)
 const isUrlOrPath = (v: string) => {
   const s = (v || '').trim();
   return (
     s.length === 0 ||
     /^https?:\/\//.test(s) ||
+    /^(data:|blob:)/.test(s) ||
     /^\/?(img|uploads)\//.test(s)
   );
 };
