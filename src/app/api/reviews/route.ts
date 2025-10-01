@@ -28,15 +28,15 @@ export async function GET(request: Request) {
       orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
     });
 
-    // normalize images string -> array
+    // normalize images string -> array (always return an array)
     const normalized = reviews.map((r: any) => {
-      let images: string[] | undefined = undefined;
+      let images: string[] = [];
       if (typeof r.images === 'string' && r.images.trim().length > 0) {
         try {
           const arr = JSON.parse(r.images);
           if (Array.isArray(arr)) {
             images = arr.filter((s) => typeof s === 'string' && s.trim().length > 0);
-          } else if (typeof r.images === 'string') {
+          } else {
             images = [r.images];
           }
         } catch {
@@ -80,7 +80,11 @@ export async function POST(request: Request) {
       } as any),
     });
 
-    return NextResponse.json(created, { status: 201 });
+    // Return normalized shape with images as an array (not string)
+    return NextResponse.json({
+      ...created,
+      images: Array.isArray(images) ? images : [],
+    }, { status: 201 });
   } catch (error: any) {
     console.error('POST /api/reviews error:', error?.stack || error?.message || error);
     return NextResponse.json({ error: 'Failed to create review' }, { status: 400 });

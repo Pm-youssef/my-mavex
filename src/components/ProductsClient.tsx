@@ -49,11 +49,13 @@ export default function ProductsClient({ products, categories }: Props) {
   // Category name lookup for active filter chip
   const categoryNameMap = useMemo(() => {
     const entries: Array<[string, string]> = [];
-    if (categories && categories.length) {
-      for (const c of categories) entries.push([c.slug, c.name]);
+    const catList = Array.isArray(categories) ? categories : [];
+    if (catList.length) {
+      for (const c of catList) entries.push([c.slug, c.name]);
     } else {
       // fallback from products
-      for (const p of products) {
+      const prodList = Array.isArray(products) ? products : [];
+      for (const p of prodList) {
         if (p.categorySlug && p.categoryName) entries.push([p.categorySlug, p.categoryName]);
       }
     }
@@ -62,7 +64,8 @@ export default function ProductsClient({ products, categories }: Props) {
   const selectedCategoryName = selectedCategory ? (categoryNameMap.get(selectedCategory) || selectedCategory) : '';
 
   const normalized = useMemo(() => {
-    return products.map(p => ({
+    const list = Array.isArray(products) ? products : [];
+    return list.map(p => ({
       ...p,
       originalPrice: Number(p.originalPrice ?? (p as any).price ?? 0) || 0,
       discountedPrice: Number(p.discountedPrice ?? p.originalPrice ?? (p as any).price ?? 0) || 0,
