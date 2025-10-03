@@ -81,28 +81,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // تحقق من توافر المخزون لكل عنصر (حسب المقاس)
-    // نتوقع أن يحتوي كل عنصر على productId, size, quantity, price
+    // تحقق من توافر المخزون لكل عنصر
+    // إذا كان للمنتج مقاسات (variants) نتحقق حسب المقاس
+    // إذا لم يكن لديه مقاسات، نتحقق من مخزون المنتج نفسه
     for (const item of items) {
       const size = String(item.size || '');
-      const rows = await prisma.$queryRaw<{ stock: number; size: string }[]>`
-        SELECT "stock", "size"
-        FROM "ProductVariant"
-        WHERE "productId" = ${item.id} AND "size" = ${size}
-        LIMIT 1
+      const vc = await prisma.$queryRaw<{ count: number }[]>`
+        SELECT COUNT(*)::int AS count FROM "ProductVariant" WHERE "productId" = ${item.id}
       `;
-      const variant = rows[0];
-      if (!variant) {
-        return NextResponse.json(
-          { error: `المقاس المطلوب غير متوفر للمنتج.` },
-          { status: 400 }
-        );
-      }
-      if (Number(variant.stock) < Number(item.quantity)) {
-        return NextResponse.json(
-          { error: `الكمية المطلوبة غير متاحة لمقاس ${variant.size}.` },
-          { status: 400 }
-        );
+      const hasVariants = Number(vc?.[0]?.count || 0) > 0;
+
+      if (hasVariants) {
+        const rows = await prisma.$queryRaw<{ stock: number; size: string }[]>`
+          SELECT "stock", "size"
+          FROM "ProductVariant"
+          WHERE "productId" = ${item.id} AND "size" = ${size}
+          LIMIT 1
+        `;
+        const variant = rows[0];
+        if (!variant) {
+          return NextResponse.json(
+            { error: `المقاس المطلوب غير متوفر للمنتج.` },
+            { status: 400 }
+          );
+        }
+        if (Number(variant.stock) < Number(item.quantity)) {
+          return NextResponse.json(
+            { error: `الكمية المطلوبة غير متاحة لمقاس ${variant.size}.` },
+            { status: 400 }
+          );
+        }
+      } else {
+        const prow = await prisma.$queryRaw<{ stock: number }[]>`
+          SELECT "stock" FROM "Product" WHERE "id" = ${item.id} LIMIT 1
+        `;
+        if (!prow?.[0]) {
+          return NextResponse.json(
+            { error: 'المنتج غير موجود' },
+            { status: 400 }
+          );
+        }
+        if (Number(prow[0].stock) < Number(item.quantity)) {
+          return NextResponse.json(
+            { error: 'الكمية المطلوبة غير متاحة لهذا المنتج.' },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -167,40 +191,58 @@ export async function POST(request: NextRequest) {
     const sessionUser = verifyUserJwt(token)
 
     const order = await prisma.$transaction(async tx => {
-      // تقليل المخزون للمقاسات المطلوبة
+      // تقليل المخزون
       for (const item of items) {
         const size = String(item.size || '');
-
-        // تأكيد التوفر داخل المعاملة
-        const rows = await tx.$queryRaw<{ id: string; stock: number }[]>`
-          SELECT "id", "stock" FROM "ProductVariant"
-          WHERE "productId" = ${item.id} AND "size" = ${size}
-          LIMIT 1
+        const vc = await tx.$queryRaw<{ count: number }[]>`
+          SELECT COUNT(*)::int AS count FROM "ProductVariant" WHERE "productId" = ${item.id}
         `;
-        const variant = rows[0];
-        if (!variant || Number(variant.stock) < Number(item.quantity)) {
-          throw new Error('Insufficient stock or variant not found');
+        const hasVariants = Number(vc?.[0]?.count || 0) > 0;
+
+        if (hasVariants) {
+          // تأكيد التوفر داخل المعاملة
+          const rows = await tx.$queryRaw<{ id: string; stock: number }[]>`
+            SELECT "id", "stock" FROM "ProductVariant"
+            WHERE "productId" = ${item.id} AND "size" = ${size}
+            LIMIT 1
+          `;
+          const variant = rows[0];
+          if (!variant || Number(variant.stock) < Number(item.quantity)) {
+            throw new Error('Insufficient stock or variant not found');
+          }
+
+          // خصم المخزون للمقاس المطلوب (محمي بشرط عدم السالب)
+          await tx.$executeRaw`
+            UPDATE "ProductVariant"
+            SET "stock" = "stock" - ${Number(item.quantity)}
+            WHERE "productId" = ${item.id} AND "size" = ${size} AND "stock" >= ${Number(item.quantity)}
+          `;
+
+          // تحديث مخزون المنتج الإجمالي (مجموع المقاسات)
+          const sumRows = await tx.$queryRaw<{ total: number }[]>`
+            SELECT COALESCE(SUM("stock"), 0) AS total
+            FROM "ProductVariant"
+            WHERE "productId" = ${item.id}
+          `;
+          const totalStock = Number(sumRows?.[0]?.total || 0);
+          await tx.$executeRaw`
+            UPDATE "Product" SET "stock" = ${totalStock} WHERE "id" = ${item.id}
+          `;
+        } else {
+          // منتج بدون مقاسات: خصم من مخزون المنتج مباشرة
+          const prow = await tx.$queryRaw<{ stock: number }[]>`
+            SELECT "stock" FROM "Product" WHERE "id" = ${item.id} LIMIT 1
+          `;
+          const stock = Number(prow?.[0]?.stock || 0);
+          if (stock < Number(item.quantity)) {
+            throw new Error('Insufficient stock');
+          }
+          await tx.$executeRaw`
+            UPDATE "Product"
+            SET "stock" = "stock" - ${Number(item.quantity)}
+            WHERE "id" = ${item.id} AND "stock" >= ${Number(item.quantity)}
+          `;
         }
-
-        // خصم المخزون للمقاس المطلوب (محمي بشرط عدم السالب)
-        await tx.$executeRaw`
-          UPDATE "ProductVariant"
-          SET "stock" = "stock" - ${Number(item.quantity)}
-          WHERE "productId" = ${
-            item.id
-          } AND "size" = ${size} AND "stock" >= ${Number(item.quantity)}
-        `;
-
-        // تحديث مخزون المنتج الإجمالي (مجموع المقاسات)
-        const sumRows = await tx.$queryRaw<{ total: number }[]>`
-          SELECT COALESCE(SUM("stock"), 0) AS total
-          FROM "ProductVariant"
-          WHERE "productId" = ${item.id}
-        `;
-        const totalStock = Number(sumRows?.[0]?.total || 0);
-        await tx.$executeRaw`
-          UPDATE "Product" SET "stock" = ${totalStock} WHERE "id" = ${item.id}
-        `;
       }
 
       // حساب الإجمالي تم مسبقًا وفق الإعدادات والكوبون
