@@ -99,7 +99,8 @@ export const checkoutSchema = z.object({
     .max(15, 'رقم الهاتف طويل جداً'),
   customerAddress: z
     .string()
-    .min(6, 'العنوان يجب أن يكون 6 أحرف على الأقل')
+    .trim()
+    .min(3, 'العنوان يجب أن يكون 3 أحرف على الأقل')
     .max(500, 'العنوان طويل جداً')
     .optional(),
   customerCity: z
@@ -126,7 +127,8 @@ export const checkoutSchema = z.object({
   billingDifferent: z.boolean().optional(),
   billingAddress: z
     .string()
-    .min(6, 'عنوان الفواتير يجب أن يكون 6 أحرف على الأقل')
+    .trim()
+    .min(3, 'عنوان الفواتير يجب أن يكون 3 أحرف على الأقل')
     .max(500, 'عنوان الفواتير طويل جداً')
     .optional(),
   billingCity: z
