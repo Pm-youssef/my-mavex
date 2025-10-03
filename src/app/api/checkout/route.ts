@@ -253,7 +253,6 @@ export async function POST(request: NextRequest) {
         customerEmail,
         customerPhone,
         totalAmount,
-        paymentMethod,
         items: {
           create: items.map((it: any) => ({
             productId: it.id,
@@ -264,31 +263,37 @@ export async function POST(request: NextRequest) {
       };
 
       // إضافة الحقول الجديدة إذا كانت موجودة في المخطط
-      if (customerAddress) orderData.customerAddress = customerAddress;
-      if (customerCity) orderData.customerCity = customerCity;
-      if (customerGovernorate)
-        orderData.customerGovernorate = customerGovernorate;
-      if (customerPostalCode) orderData.customerPostalCode = customerPostalCode;
-      if (shippingMethod) orderData.shippingMethod = methodUpper;
-      orderData.subtotal = subtotal;
-      orderData.shippingCost = shippingCost;
-
       if (sessionUser?.id) {
         (orderData as any).userId = sessionUser.id;
       }
       // Conditionally include billing fields if columns exist
       try {
         const cols = await getOrderColumns();
-        if (cols.has('billingdifferent')) (orderData as any).billingDifferent = Boolean(billingDifferent);
-        if (cols.has('billingaddress') && billingAddress) (orderData as any).billingAddress = String(billingAddress);
-        if (cols.has('billingcity') && billingCity) (orderData as any).billingCity = String(billingCity);
-        if (cols.has('billinggovernorate') && billingGovernorate) (orderData as any).billingGovernorate = String(billingGovernorate);
-        if (cols.has('billingpostalcode') && billingPostalCode) (orderData as any).billingPostalCode = String(billingPostalCode);
+        // core optional columns
+        if (cols.has('paymentmethod')) (orderData as any).paymentMethod = String(paymentMethod || 'COD');
+        if (cols.has('shippingmethod')) (orderData as any).shippingMethod = methodUpper;
+        if (cols.has('subtotal')) (orderData as any).subtotal = subtotal;
+        if (cols.has('shippingcost')) (orderData as any).shippingCost = shippingCost;
+
+        // customer address (if provided)
+        if (cols.has('customeraddress') && customerAddress) (orderData as any).customerAddress = String(customerAddress);
+        if (cols.has('customercity') && customerCity) (orderData as any).customerCity = String(customerCity);
+        if (cols.has('customergovernorate') && customerGovernorate) (orderData as any).customerGovernorate = String(customerGovernorate);
+        if (cols.has('customerpostalcode') && customerPostalCode) (orderData as any).customerPostalCode = String(customerPostalCode);
+
+        // billing address block, only when different
+        if (Boolean(billingDifferent)) {
+          if (cols.has('billingdifferent')) (orderData as any).billingDifferent = true;
+          if (cols.has('billingaddress') && billingAddress) (orderData as any).billingAddress = String(billingAddress);
+          if (cols.has('billingcity') && billingCity) (orderData as any).billingCity = String(billingCity);
+          if (cols.has('billinggovernorate') && billingGovernorate) (orderData as any).billingGovernorate = String(billingGovernorate);
+          if (cols.has('billingpostalcode') && billingPostalCode) (orderData as any).billingPostalCode = String(billingPostalCode);
+        }
       } catch {}
 
       const createdOrder = await tx.order.create({
         data: orderData,
-        include: { items: { include: { product: true } } },
+        select: { id: true },
       });
 
       return createdOrder;
@@ -301,6 +306,25 @@ export async function POST(request: NextRequest) {
         const nodemailerMod: any = await import('nodemailer').catch(() => null);
         const nodemailer = nodemailerMod?.default ?? nodemailerMod;
         if (nodemailer) {
+          // Fetch a safe projection of the order for email templates
+          const orderFull = await prisma.order.findUnique({
+            where: { id: order.id },
+            select: {
+              id: true,
+              customerName: true,
+              customerEmail: true,
+              customerPhone: true,
+              totalAmount: true,
+              createdAt: true,
+              items: {
+                select: {
+                  quantity: true,
+                  price: true,
+                  product: { select: { id: true, name: true, imageUrl: true } },
+                },
+              },
+            },
+          });
           const transporter = nodemailer.createTransport({
             host: SMTP_HOST,
             port: Number(SMTP_PORT) || 587,
@@ -309,7 +333,7 @@ export async function POST(request: NextRequest) {
           });
           const to = ADMIN_EMAIL || SMTP_FROM;
           const { orderAdminTemplate, orderCustomerTemplate } = await import('@/lib/emails')
-          const html = orderAdminTemplate(order)
+          const html = orderAdminTemplate(orderFull)
           await transporter.sendMail({
             from: SMTP_FROM,
             to,
@@ -320,7 +344,7 @@ export async function POST(request: NextRequest) {
           // Customer confirmation email (if email provided)
           const custTo = (customerEmail || '').trim();
           if (custTo) {
-            const custHtml = orderCustomerTemplate(order)
+            const custHtml = orderCustomerTemplate(orderFull)
             await transporter.sendMail({
               from: SMTP_FROM,
               to: custTo,
@@ -338,9 +362,9 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       success: true,
       message: 'تم إنشاء الطلب بنجاح!',
-      totalAmount: order.totalAmount,
+      totalAmount: totalAmount,
       orderNumber: order.id,
-      paymentMethod: order.paymentMethod,
+      paymentMethod: String(paymentMethod || 'COD'),
     });
   } catch (error: any) {
     console.error('Checkout error:', error?.message || error);
