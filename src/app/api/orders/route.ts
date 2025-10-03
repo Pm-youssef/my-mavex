@@ -15,7 +15,20 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const orders = await prisma.order.findMany({
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        customerName: true,
+        customerEmail: true,
+        customerPhone: true,
+        totalAmount: true,
+        subtotal: true,
+        shippingCost: true,
+        status: true,
+        paymentMethod: true,
+        shippingMethod: true,
+        createdAt: true,
+        updatedAt: true,
         items: {
           include: {
             product: true,
