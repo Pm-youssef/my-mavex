@@ -19,9 +19,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     // Rate limit uploads: 20 requests / hour per IP
-    const rl = rateLimit(request, 'upload', { limit: 20, windowMs: 60 * 60_000 });
+    const rl = rateLimit(request, 'upload', {
+      limit: 20,
+      windowMs: 60 * 60_000,
+    });
     if (!rl.ok) {
-      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
     }
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -33,10 +39,16 @@ export async function POST(request: Request) {
     // Validate file size (<= 5MB) and ensure it's an image
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: 'حجم الملف كبير. الحد الأقصى 5MB' }, { status: 413 });
+      return NextResponse.json(
+        { error: 'حجم الملف كبير. الحد الأقصى 5MB' },
+        { status: 413 }
+      );
     }
     if (!file.type || !file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'يجب أن يكون الملف صورة' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'يجب أن يكون الملف صورة' },
+        { status: 400 }
+      );
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -45,15 +57,17 @@ export async function POST(request: Request) {
     const ext = (file.name.split('.').pop() || 'png').toLowerCase();
     const allowed = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif']);
     if (!allowed.has(ext)) {
-      return NextResponse.json({ error: 'امتداد الملف غير مسموح' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'امتداد الملف غير مسموح' },
+        { status: 400 }
+      );
     }
     const fileName = `${Date.now()}-${Math.random()
       .toString(36)
       .slice(2, 8)}.${ext}`;
 
-    // Use tmp dir (Vercel-compatible). Static serving handled by /uploads/[...path]
-    const baseTmp = os.tmpdir();
-    const uploadDir = path.join(baseTmp, 'uploads');
+    // Save to public/uploads so it's accessible via URL and LocalImagePicker
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     await mkdir(uploadDir, { recursive: true });
     const filePath = path.join(uploadDir, fileName);
 

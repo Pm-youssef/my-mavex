@@ -1,16 +1,17 @@
-import prisma from '@/lib/prisma'
-import Link from 'next/link'
-import HeroCounters from '@/components/HeroCounters'
-import HeroStars from '@/components/HeroStars'
+import prisma from '@/lib/prisma';
+import Link from 'next/link';
+import HeroCounters from '@/components/HeroCounters';
+import HeroStars from '@/components/HeroStars';
+import ProductCard from '@/components/ProductCard';
 
-export const revalidate = 60
+export const revalidate = 60;
 
 export default async function HomePage() {
   const productsRaw = await prisma.product.findMany({
     orderBy: { createdAt: 'desc' },
-    take: 6,
-    include: { variants: true }
-  })
+    take: 3,
+    include: { variants: true },
+  });
   const products = productsRaw.map((p: any) => ({
     id: p.id,
     name: p.name,
@@ -22,12 +23,21 @@ export default async function HomePage() {
     hoverImageUrl: p.hoverImageUrl ?? null,
     stock: Number(p.stock || 0),
     variants: Array.isArray(p.variants)
-      ? p.variants.map((v: any) => ({ id: v.id, size: v.size, stock: Number(v.stock || 0) }))
+      ? p.variants.map((v: any) => ({
+          id: v.id,
+          size: v.size,
+          stock: Number(v.stock || 0),
+        }))
       : [],
-  }))
+  }));
 
   // Load top categories (for white band) — prefer imageUrl if column exists; fallback safely
-  let categories: Array<{ name: string; slug: string; count: number; imageUrl?: string | null }> = []
+  let categories: Array<{
+    name: string;
+    slug: string;
+    count: number;
+    imageUrl?: string | null;
+  }> = [];
   try {
     const categoriesRaw = await prisma.category.findMany({
       orderBy: { name: 'asc' },
@@ -38,13 +48,13 @@ export default async function HomePage() {
         imageUrl: true,
         _count: { select: { products: true } },
       },
-    })
+    });
     categories = categoriesRaw.map((c: any) => ({
       name: c.name as string,
       slug: c.slug as string,
       imageUrl: c.imageUrl ?? null,
       count: Number(c._count?.products || 0),
-    }))
+    }));
   } catch {
     try {
       const categoriesRaw = await prisma.category.findMany({
@@ -55,12 +65,12 @@ export default async function HomePage() {
           slug: true,
           _count: { select: { products: true } },
         },
-      })
+      });
       categories = categoriesRaw.map((c: any) => ({
         name: c.name as string,
         slug: c.slug as string,
         count: Number(c._count?.products || 0),
-      }))
+      }));
     } catch {}
   }
 
@@ -72,10 +82,25 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#0c1420] via-[#0c1420]/95 to-[#1a2332]" />
         {/* Base grid */}
         <div className="absolute inset-0 opacity-[0.06]" aria-hidden>
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 160 90">
+          <svg
+            className="w-full h-full"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            viewBox="0 0 160 90"
+          >
             <defs>
-              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5" />
+              <pattern
+                id="grid"
+                width="10"
+                height="10"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 10 0 L 0 0 0 10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.5"
+                />
               </pattern>
             </defs>
             <rect width="160" height="90" fill="url(#grid)" />
@@ -95,7 +120,11 @@ export default async function HomePage() {
           {/* Added triangle and square for higher clarity (desktop emphasized) */}
           <div
             className="hidden sm:block absolute top-16 w-14 h-14 opacity-30 md:opacity-45 hero-anim-float-1"
-            style={{ left: '20%', clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', background: 'rgba(234,179,8,0.08)' }}
+            style={{
+              left: '20%',
+              clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+              background: 'rgba(234,179,8,0.08)',
+            }}
             aria-hidden
           />
           <div
@@ -114,13 +143,20 @@ export default async function HomePage() {
                 <span className="text-yellow-500">MAVEX</span>
               </h1>
               <p className="mt-7 max-w-4xl mx-auto text-lg md:text-2xl text-white/85 leading-relaxed">
-                اكتشف مجموعتنا المميزة من التيشيرتات عالية الجودة. تصميمات فريدة وألوان مذهلة تناسب جميع الأذواق.
+                اكتشف مجموعتنا المميزة من التيشيرتات عالية الجودة. تصميمات فريدة
+                وألوان مذهلة تناسب جميع الأذواق.
               </p>
               <div className="mt-8 flex items-center justify-center gap-4">
-                <Link href="/products" className="btn-gold-gradient px-7 py-3.5 rounded-xl font-extrabold text-base md:text-lg">
+                <Link
+                  href="/products"
+                  className="btn-gold-gradient px-7 py-3.5 rounded-xl font-extrabold text-base md:text-lg"
+                >
                   تصفح المنتجات
                 </Link>
-                <Link href="/contact" className="px-7 py-3.5 rounded-xl font-extrabold border border-white/20 text-white hover:bg-white/10 transition text-base md:text-lg">
+                <Link
+                  href="/contact"
+                  className="px-7 py-3.5 rounded-xl font-extrabold border border-white/20 text-white hover:bg-white/10 transition text-base md:text-lg"
+                >
                   اتصل بنا
                 </Link>
               </div>
@@ -150,16 +186,47 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* New Arrivals Section */}
+      <section className="py-16 md:py-24 bg-gray-50 dark:bg-[#0c1420]/50">
+        <div className="mavex-container">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-[#0c1420] dark:text-white">
+              أحدث المنتجات
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-3 text-lg">
+              تشكيلة مميزة وصلت حديثاً
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/products"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-bold text-white transition-all duration-200 bg-[#0c1420] border border-transparent rounded-xl hover:bg-[#1a2332] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c1420]"
+            >
+              عرض كل المنتجات
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* White category band (only if categories exist) */}
       {categories.length > 0 && (
         <section className="bg-white py-14 md:py-16 border-t-2 border-yellow-500">
           <div className="mavex-container">
             <div className="text-center max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-black text-[#0c1420]">تصفح حسب الأقسام</h2>
+              <h2 className="text-2xl md:text-3xl font-black text-[#0c1420]">
+                تصفح حسب الأقسام
+              </h2>
               <p className="text-gray-600 mt-2">اختر القسم الذي يناسبك</p>
             </div>
             <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-7 md:gap-10">
-              {categories.map((c) => (
+              {categories.map(c => (
                 <Link
                   key={c.slug}
                   href={`/products?category=${encodeURIComponent(c.slug)}`}
@@ -171,21 +238,29 @@ export default async function HomePage() {
                   <div className="absolute inset-0 ring-1 ring-yellow-500/10 rounded-2xl" />
                   {/* Optional category background image (from admin) */}
                   {(() => {
-                    const src = (c as any).imageUrl as string | undefined
-                    const isHttp = !!src && /^https?:\/\//i.test(src)
-                    const normalized = src ? (isHttp ? src : (src.startsWith('/') ? src : `/${src}`)) : ''
+                    const src = (c as any).imageUrl as string | undefined;
+                    const isHttp = !!src && /^https?:\/\//i.test(src);
+                    const normalized = src
+                      ? isHttp
+                        ? src
+                        : src.startsWith('/')
+                        ? src
+                        : `/${src}`
+                      : '';
                     return src ? (
                       <div
                         aria-hidden
                         className="absolute inset-0 bg-center bg-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500"
                         style={{ backgroundImage: `url('${normalized}')` }}
                       />
-                    ) : null
+                    ) : null;
                   })()}
 
                   {/* Content */}
                   <div className="absolute bottom-7 right-7 text-right">
-                    <div className="font-extrabold text-4xl md:text-5xl leading-tight">{c.name}</div>
+                    <div className="font-extrabold text-4xl md:text-5xl leading-tight">
+                      {c.name}
+                    </div>
                     <div className="text-white/85 text-lg md:text-xl">
                       {c.count > 0 ? `${c.count} منتج` : 'تصفح الآن'}
                     </div>
@@ -197,5 +272,5 @@ export default async function HomePage() {
         </section>
       )}
     </>
-  )
+  );
 }

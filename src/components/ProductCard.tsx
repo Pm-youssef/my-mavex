@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useState, type MouseEvent, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useState,
+  type MouseEvent,
+  type KeyboardEvent,
+} from 'react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import QuickView from './QuickView';
@@ -85,9 +90,17 @@ export default function ProductCard({
     if (isAuthenticated) {
       try {
         if (exists) {
-          await fetch('/api/wishlist', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id }) });
+          await fetch('/api/wishlist', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: product.id }),
+          });
         } else {
-          await fetch('/api/wishlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id }) });
+          await fetch('/api/wishlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: product.id }),
+          });
         }
       } catch {}
     }
@@ -132,7 +145,10 @@ export default function ProductCard({
   const reviewsCount = product.reviewsCount ?? 0;
 
   // Keyboard navigation for sizes (radiogroup behavior)
-  const handleSizeKeyDown = (e: KeyboardEvent<HTMLButtonElement>, size: string) => {
+  const handleSizeKeyDown = (
+    e: KeyboardEvent<HTMLButtonElement>,
+    size: string
+  ) => {
     const idx = sizes.findIndex(s => s === size);
     if (idx === -1) return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -217,7 +233,9 @@ export default function ProductCard({
                   : 'opacity-0 translate-y-1 group-hover/card:opacity-100 group-hover/card:translate-y-0'
               }`}
             >
-              {hasDiscount && discountPercent > 0 ? `خصم ${discountPercent}%` : 'جديد'}
+              {hasDiscount && discountPercent > 0
+                ? `خصم ${discountPercent}%`
+                : 'جديد'}
             </div>
           </div>
 
@@ -298,12 +316,14 @@ export default function ProductCard({
                       }`}
                       title={`${size} — ${available ? 'متاح' : 'غير متوفر'}`}
                       type="button"
-                      aria-label={`${size} — ${available ? 'متاح' : 'غير متوفر'}`}
+                      aria-label={`${size} — ${
+                        available ? 'متاح' : 'غير متوفر'
+                      }`}
                       role="radio"
                       aria-checked={selectedSize === size}
                       aria-disabled={!available}
                       tabIndex={selectedSize === size ? 0 : -1}
-                      onKeyDown={(e) => handleSizeKeyDown(e, size)}
+                      onKeyDown={e => handleSizeKeyDown(e, size)}
                     >
                       {size}
                     </button>
@@ -316,7 +336,7 @@ export default function ProductCard({
 
         {/* CTA under photo (appears on hover) */}
         <div className="px-5 pt-3">
-          <div className="overflow-hidden transition-all duration-300 max-h-16 opacity-100 md:max-h-0 md:opacity-0 md:group-hover/card:max-h-16 md:group-hover/card:opacity-100">
+          <div className="overflow-hidden transition-all duration-300 max-h-28 opacity-100 md:max-h-0 md:opacity-0 md:group-hover/card:max-h-28 md:group-hover/card:opacity-100">
             <button
               type="button"
               onClick={e => {
@@ -326,7 +346,10 @@ export default function ProductCard({
                   Array.isArray(product.variants) &&
                   product.variants.length > 0;
                 if (requireSize && !selectedSize) {
-                  toastWarning({ title: 'اختر المقاس', description: 'يرجى اختيار المقاس قبل الإضافة إلى السلة' });
+                  toastWarning({
+                    title: 'اختر المقاس',
+                    description: 'يرجى اختيار المقاس قبل الإضافة إلى السلة',
+                  });
                   return;
                 }
                 addToCart(
@@ -360,7 +383,7 @@ export default function ProductCard({
             {Array.isArray(product.variants) &&
               product.variants.length > 0 &&
               !selectedSize && (
-                <div className="mt-2 text-[11px] font-medium text-gray-600 dark:text-gray-300">
+                <div className="mt-2 text-[11px] font-medium text-gray-600 dark:text-gray-300 text-center">
                   اختر المقاس أولاً لإتمام الشراء
                 </div>
               )}
@@ -376,7 +399,11 @@ export default function ProductCard({
               <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded"></div>
             </div>
           )}
-          <div className={`flex items-center justify-between gap-3 transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          <div
+            className={`flex items-center justify-between gap-3 transition-opacity duration-300 ${
+              imgLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
             <div className="min-w-0">
               <h3
                 className={`text-sm font-extrabold text-[#0c1420] dark:text-white line-clamp-1`}
@@ -390,10 +417,12 @@ export default function ProductCard({
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-3.5 h-3.5 ${i < ratingValue ? 'text-yellow-500' : 'text-gray-300'}`}
+                        className={`w-3.5 h-3.5 ${
+                          i < ratingValue ? 'text-yellow-500' : 'text-gray-300'
+                        }`}
                         fill="currentColor"
-                      />)
-                    )}
+                      />
+                    ))}
                   </div>
                   {reviewsCount > 0 && (
                     <span className="ml-1">({reviewsCount})</span>
@@ -412,7 +441,13 @@ export default function ProductCard({
                   {hasDiscount && (
                     <span className="text-[10px] text-gray-500">بعد</span>
                   )}
-                  <span className={`${hasDiscount ? 'text-rose-600 text-lg md:text-xl' : 'text-yellow-600 text-base'} font-black`}>
+                  <span
+                    className={`${
+                      hasDiscount
+                        ? 'text-rose-600 text-lg md:text-xl'
+                        : 'text-yellow-600 text-base'
+                    } font-black`}
+                  >
                     {formatPrice(currentPrice)}
                   </span>
                 </div>
@@ -438,7 +473,9 @@ export default function ProductCard({
                 />
               ))}
               {product.colors.length > 6 && (
-                <span className="text-[10px] text-gray-500">+{product.colors.length - 6}</span>
+                <span className="text-[10px] text-gray-500">
+                  +{product.colors.length - 6}
+                </span>
               )}
             </div>
           )}

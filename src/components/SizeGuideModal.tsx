@@ -36,7 +36,7 @@ export default function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps)
         aria-modal="true"
         aria-label="دليل المقاسات"
       >
-        <div className="bg-[#0c1420] text-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+        <div className="bg-[#0c1420] text-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <h2 className="text-xl font-extrabold">دليل المقاسات</h2>
             <button

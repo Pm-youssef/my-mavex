@@ -1,44 +1,90 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
-import { FALLBACK_IMAGE_URL } from '@/lib/constants'
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { FALLBACK_IMAGE_URL } from '@/lib/constants';
 
-type ImageItem = { name: string; url: string }
+type ImageItem = { name: string; url: string };
 
 interface Props {
-  label: string
-  value: string
-  onChange: (url: string) => void
-  placeholder?: string
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  placeholder?: string;
 }
 
-export default function LocalImagePicker({ label, value, onChange, placeholder }: Props) {
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [images, setImages] = useState<ImageItem[]>([])
-  const [error, setError] = useState<string | null>(null)
+export default function LocalImagePicker({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: Props) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [images, setImages] = useState<ImageItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) return
-    let ignore = false
+    if (!open) return;
+    let ignore = false;
     const load = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        const res = await fetch('/api/images')
-        if (!res.ok) throw new Error('Failed to fetch images')
-        const data = (await res.json()) as { images?: ImageItem[] }
-        if (!ignore) setImages(Array.isArray(data.images) ? data.images : [])
-      } catch (e:any) {
-        if (!ignore) setError(e?.message || 'حدث خطأ')
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/images');
+        if (!res.ok) throw new Error('Failed to fetch images');
+        const data = (await res.json()) as { images?: ImageItem[] };
+        if (!ignore) setImages(Array.isArray(data.images) ? data.images : []);
+      } catch (e: any) {
+        if (!ignore) setError(e?.message || 'حدث خطأ');
       } finally {
-        if (!ignore) setLoading(false)
+        if (!ignore) setLoading(false);
       }
+    };
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [open]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setError(null);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'فشل الرفع');
+      }
+
+      const data = await res.json();
+      // Refresh images
+      const imgsRes = await fetch('/api/images');
+      if (imgsRes.ok) {
+        const imgsData = await imgsRes.json();
+        setImages(Array.isArray(imgsData.images) ? imgsData.images : []);
+      }
+      // Select the new image
+      if (data.url) onChange(data.url);
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ أثناء الرفع');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-    load()
-    return () => { ignore = true }
-  }, [open])
+  };
 
   return (
     <div className="space-y-3">
@@ -47,16 +93,32 @@ export default function LocalImagePicker({ label, value, onChange, placeholder }
         <input
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="mavex-input flex-1 focus:border-brand-500 focus:ring-brand-200"
           placeholder={placeholder || 'مثال: /img/tshirt.png أو https://...'}
         />
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen(v => !v)}
           className="px-4 py-2 bg-gray-100 hover:bg-yellow-500 hover:text-white border border-gray-300 rounded-lg font-bold"
         >
           {open ? 'إغلاق' : 'اختر من المعرض'}
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleUpload}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 border border-transparent rounded-lg font-bold disabled:opacity-50"
+          style={{ backgroundColor: '#0c1420' }}
+        >
+          {uploading ? 'جاري الرفع...' : 'رفع صورة'}
         </button>
       </div>
 
@@ -89,16 +151,18 @@ export default function LocalImagePicker({ label, value, onChange, placeholder }
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
           ) : images.length === 0 ? (
-            <p className="text-sm text-gray-600">لا توجد صور في المجلدين public/img أو public/uploads</p>
+            <p className="text-sm text-gray-600">
+              لا توجد صور في المجلدين public/img أو public/uploads
+            </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {images.map((img) => (
+              {images.map(img => (
                 <button
                   key={img.url}
                   type="button"
                   onClick={() => {
-                    onChange(img.url)
-                    setOpen(false)
+                    onChange(img.url);
+                    setOpen(false);
                   }}
                   className={`group border rounded-xl overflow-hidden hover:ring-2 hover:ring-brand-500 transition ${
                     value === img.url ? 'ring-2 ring-brand-500' : ''
@@ -114,7 +178,9 @@ export default function LocalImagePicker({ label, value, onChange, placeholder }
                       className="object-cover transition-transform group-hover:scale-105"
                     />
                   </div>
-                  <div className="px-2 py-1 text-xs text-gray-700 truncate text-left">{img.name}</div>
+                  <div className="px-2 py-1 text-xs text-gray-700 truncate text-left">
+                    {img.name}
+                  </div>
                 </button>
               ))}
             </div>
@@ -122,5 +188,5 @@ export default function LocalImagePicker({ label, value, onChange, placeholder }
         </div>
       )}
     </div>
-  )
+  );
 }

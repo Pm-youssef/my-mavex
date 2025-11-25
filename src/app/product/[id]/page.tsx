@@ -2,8 +2,24 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { formatPrice } from '@/lib/utils';
-import { CART_STORAGE_KEY, FAVORITES_STORAGE_KEY, DEFAULT_SIZES, CURRENCY, SITE_NAME, SITE_URL } from '@/lib/constants';
-import { Check, Heart, Clock, Shield, Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  CART_STORAGE_KEY,
+  FAVORITES_STORAGE_KEY,
+  DEFAULT_SIZES,
+  CURRENCY,
+  SITE_NAME,
+  SITE_URL,
+} from '@/lib/constants';
+import {
+  Check,
+  Heart,
+  Clock,
+  Shield,
+  Star,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import ImageWithFallback from '@/components/ui/ImageWithFallback';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -12,7 +28,11 @@ import { toast } from '@/components/ui/Toast';
 import RecommendedProducts from '@/components/RecommendedProducts';
 import ProductFeatures from '@/components/ProductFeatures';
 import SizeGuideModal from '@/components/SizeGuideModal';
-import { trackAddToCart, trackFavoriteAdded, trackFavoriteRemoved } from '@/lib/analytics';
+import {
+  trackAddToCart,
+  trackFavoriteAdded,
+  trackFavoriteRemoved,
+} from '@/lib/analytics';
 
 const Reviews = dynamic(() => import('@/components/Reviews'), {
   ssr: false,
@@ -63,7 +83,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [reviewsCount, setReviewsCount] = useState(0);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   // Discount countdown state
-  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{
+    d: number;
+    h: number;
+    m: number;
+    s: number;
+  } | null>(null);
   const [discountActive, setDiscountActive] = useState(false);
   // Zoom lens state
   const imageBoxRef = useRef<HTMLDivElement | null>(null);
@@ -88,13 +113,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`/api/products/${params.id}`, { cache: 'no-store' });
+        const res = await fetch(`/api/products/${params.id}`, {
+          cache: 'no-store',
+        });
         if (!res.ok) {
           setProduct(null);
           return;
         }
         const data = await res.json();
-        if (!data || (typeof data === 'object' && data !== null && 'error' in data)) {
+        if (
+          !data ||
+          (typeof data === 'object' && data !== null && 'error' in data)
+        ) {
           setProduct(null);
           return;
         }
@@ -115,7 +145,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             (data as any)?.hoverImageUrl,
             (data as any)?.image2Url,
             (data as any)?.image3Url,
-          ].filter((u: any): u is string => typeof u === 'string' && u.length > 0);
+          ].filter(
+            (u: any): u is string => typeof u === 'string' && u.length > 0
+          );
           setSelectedImage(imgs[0] || (data as any)?.imageUrl || '');
         } catch {}
 
@@ -123,7 +155,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         try {
           const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
           const ids: string[] = raw ? JSON.parse(raw) : [];
-          setIsFavorite(Array.isArray(ids) && (data as any)?.id ? ids.includes((data as any).id) : false);
+          setIsFavorite(
+            Array.isArray(ids) && (data as any)?.id
+              ? ids.includes((data as any).id)
+              : false
+          );
         } catch {}
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -154,11 +190,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         return;
       }
       try {
-        const res = await fetch(`/api/reviews?productId=${encodeURIComponent(product.id)}`, { cache: 'no-store' });
+        const res = await fetch(
+          `/api/reviews?productId=${encodeURIComponent(product.id)}`,
+          { cache: 'no-store' }
+        );
         if (!res.ok) throw new Error('failed');
         const arr = await res.json();
         if (Array.isArray(arr) && arr.length > 0) {
-          const sum = arr.reduce((s: number, r: any) => s + (Number(r?.rating) || 0), 0);
+          const sum = arr.reduce(
+            (s: number, r: any) => s + (Number(r?.rating) || 0),
+            0
+          );
           const avg = Math.round((sum / arr.length) * 10) / 10;
           setAvgRating(avg);
           setReviewsCount(arr.length);
@@ -184,7 +226,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   // Discount countdown effect
   useEffect(() => {
-    if (!product || !product.discountedPrice || product.discountedPrice >= product.originalPrice) {
+    if (
+      !product ||
+      !product.discountedPrice ||
+      product.discountedPrice >= product.originalPrice
+    ) {
       setDiscountActive(false);
       setTimeLeft(null);
       return;
@@ -219,7 +265,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   // Auto-select first in-stock size when product variants load or selection becomes invalid
   useEffect(() => {
     if (!product?.variants || product.variants.length === 0) return;
-    const selectedOk = selectedSize && product.variants.some(v => v.size === selectedSize && v.stock > 0);
+    const selectedOk =
+      selectedSize &&
+      product.variants.some(v => v.size === selectedSize && v.stock > 0);
     if (!selectedOk) {
       const firstInStock = product.variants.find(v => v.stock > 0);
       if (firstInStock) setSelectedSize(firstInStock.size);
@@ -231,15 +279,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     // Inline compute to avoid function deps
     let stock = 0;
     if (product?.variants && selectedSize) {
-      const v = product.variants.find((vv) => vv.size === selectedSize);
+      const v = product.variants.find(vv => vv.size === selectedSize);
       stock = v?.stock || 0;
     } else {
       stock = product?.stock || 0;
     }
     const keySize = product?.variants && selectedSize ? selectedSize : '';
-    const inCart = cart.find((i) => i.id === product?.id && (i.size || '') === keySize)?.quantity || 0;
+    const inCart =
+      cart.find(i => i.id === product?.id && (i.size || '') === keySize)
+        ?.quantity || 0;
     const maxAdd = Math.max(0, stock - inCart);
-    setQuantity((q) => {
+    setQuantity(q => {
       if (maxAdd <= 0) return 1;
       return Math.min(Math.max(1, q), maxAdd);
     });
@@ -255,16 +305,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     ]
       .filter((u): u is string => typeof u === 'string' && u.length > 0)
       .filter((v, i, arr) => arr.indexOf(v) === i);
-  }, [product?.imageUrl, product?.hoverImageUrl, product?.image2Url, product?.image3Url]);
+  }, [
+    product?.imageUrl,
+    product?.hoverImageUrl,
+    product?.image2Url,
+    product?.image3Url,
+  ]);
 
   const currentIndex = useMemo(
-    () => Math.max(0, galleryImages.indexOf(selectedImage || (product?.imageUrl || ''))),
+    () =>
+      Math.max(
+        0,
+        galleryImages.indexOf(selectedImage || product?.imageUrl || '')
+      ),
     [galleryImages, selectedImage, product?.imageUrl]
   );
 
   const prevImage = useCallback(() => {
     if (galleryImages.length < 2) return;
-    const idx = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+    const idx =
+      (currentIndex - 1 + galleryImages.length) % galleryImages.length;
     setSelectedImage(galleryImages[idx]);
   }, [galleryImages, currentIndex]);
 
@@ -274,22 +334,28 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     setSelectedImage(galleryImages[idx]);
   }, [galleryImages, currentIndex]);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    setTouchStartX(e.touches[0]?.clientX ?? null);
-  }, []);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      setTouchStartX(e.touches[0]?.clientX ?? null);
+    },
+    []
+  );
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStartX == null) return;
-    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX;
-    if (dx > 40) {
-      // swipe right -> previous (RTL-friendly)
-      prevImage();
-    } else if (dx < -40) {
-      // swipe left -> next
-      nextImage();
-    }
-    setTouchStartX(null);
-  }, [touchStartX, prevImage, nextImage]);
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (touchStartX == null) return;
+      const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX;
+      if (dx > 40) {
+        // swipe right -> previous (RTL-friendly)
+        prevImage();
+      } else if (dx < -40) {
+        // swipe left -> next
+        nextImage();
+      }
+      setTouchStartX(null);
+    },
+    [touchStartX, prevImage, nextImage]
+  );
 
   // Lightbox keyboard navigation and focus handling
   useEffect(() => {
@@ -329,7 +395,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     // Compute object-contain fit of the image inside the container
     const iw = imgNatural.w;
     const ih = imgNatural.h;
-    let w = cw, h = ch, offX = 0, offY = 0;
+    let w = cw,
+      h = ch,
+      offX = 0,
+      offY = 0;
     if (iw > 0 && ih > 0 && cw > 0 && ch > 0) {
       const cAR = cw / ch;
       const iAR = iw / ih;
@@ -350,7 +419,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     setImgFit({ w, h, offX, offY });
 
     // Determine if cursor is inside the rendered image area
-    const inside = relX >= offX && relX <= offX + w && relY >= offY && relY <= offY + h;
+    const inside =
+      relX >= offX && relX <= offX + w && relY >= offY && relY <= offY + h;
     setLensVisible(inside);
 
     setLensPos({ x: relX, y: relY });
@@ -367,10 +437,13 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     const MIN_PANE = 200;
     const gap = 24;
     // Choose side with more space OUTSIDE the main container (to avoid covering content)
-    const containerEl = imageBoxRef.current?.closest('.max-w-screen-2xl') as HTMLElement | null;
+    const containerEl = imageBoxRef.current?.closest(
+      '.max-w-screen-2xl'
+    ) as HTMLElement | null;
     const containerRect = containerEl?.getBoundingClientRect();
     const contLeft = containerRect?.left ?? Math.max(0, rect.left - 8);
-    const contRight = containerRect?.right ?? Math.min(window.innerWidth, rect.right + 8);
+    const contRight =
+      containerRect?.right ?? Math.min(window.innerWidth, rect.right + 8);
     const availableLeft = Math.max(0, contLeft - 8);
     const availableRight = Math.max(0, window.innerWidth - contRight - 8);
     const preferLeft = availableLeft >= availableRight;
@@ -380,7 +453,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     let useSize = PANE_SIZE;
     useSize = Math.min(useSize, Math.floor(sideSpace - gap));
     // Do not let the pane be taller than the image or viewport
-    const maxByHeight = Math.floor(Math.min(rect.height - 16, window.innerHeight - 32));
+    const maxByHeight = Math.floor(
+      Math.min(rect.height - 16, window.innerHeight - 32)
+    );
     useSize = Math.max(MIN_PANE, Math.min(useSize, maxByHeight));
     const canPlaceOutside = sideSpace >= MIN_PANE + gap;
     // While moving inside the box, force visibility; mouseleave will hide it
@@ -396,17 +471,35 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         ? Math.max(8, contLeft - useSize - gap)
         : Math.min(window.innerWidth - useSize - 8, contRight + gap);
       // Vertical coordinate: dock to image top (clamped to viewport)
-      paneTop = Math.max(16, Math.min(window.innerHeight - useSize - 16, rect.top));
+      paneTop = Math.max(
+        16,
+        Math.min(window.innerHeight - useSize - 16, rect.top)
+      );
     } else {
       // Fallback: overlay inside image box at top-left (so it doesn't cover left details)
-      const safeSize = Math.max(MIN_PANE, Math.min(maxByHeight, Math.floor(rect.width - 32)));
+      const safeSize = Math.max(
+        MIN_PANE,
+        Math.min(maxByHeight, Math.floor(rect.width - 32))
+      );
       setZoomPaneSize(safeSize);
-      paneLeft = Math.max(8, Math.min(window.innerWidth - safeSize - 8, rect.left + 16));
-      paneTop = Math.max(16, Math.min(window.innerHeight - safeSize - 16, rect.top + 16));
+      paneLeft = Math.max(
+        8,
+        Math.min(window.innerWidth - safeSize - 8, rect.left + 16)
+      );
+      paneTop = Math.max(
+        16,
+        Math.min(window.innerHeight - safeSize - 16, rect.top + 16)
+      );
     }
     setZoomPanePos({ left: paneLeft, top: paneTop });
-    const paneBgX = -(imgRelX * ZOOM_SCALE - (canPlaceOutside ? useSize : Math.min(zoomPaneSize, useSize)) / 2);
-    const paneBgY = -(imgRelY * ZOOM_SCALE - (canPlaceOutside ? useSize : Math.min(zoomPaneSize, useSize)) / 2);
+    const paneBgX = -(
+      imgRelX * ZOOM_SCALE -
+      (canPlaceOutside ? useSize : Math.min(zoomPaneSize, useSize)) / 2
+    );
+    const paneBgY = -(
+      imgRelY * ZOOM_SCALE -
+      (canPlaceOutside ? useSize : Math.min(zoomPaneSize, useSize)) / 2
+    );
     setZoomPaneBgPx({ x: paneBgX, y: paneBgY });
   };
 
@@ -437,12 +530,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     } catch {}
   };
 
-  
-
   const addToCart = (): boolean => {
     if (!product) return false;
     if (product?.variants && product.variants.length > 0 && !selectedSize) {
-      toast({ title: 'اختر المقاس', description: 'من فضلك اختر المقاس أولاً', variant: 'warning' });
+      toast({
+        title: 'اختر المقاس',
+        description: 'من فضلك اختر المقاس أولاً',
+        variant: 'warning',
+      });
       return false;
     }
 
@@ -453,16 +548,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         : product.originalPrice;
     const hasVariants = !!(product.variants && product.variants.length > 0);
     // Normalize the key we use to compare items. If no variants, ignore any UI-selected size.
-    const keySize = hasVariants ? (selectedSize || '') : '';
+    const keySize = hasVariants ? selectedSize || '' : '';
 
     const existingItem = cart.find(
-      item =>
-        item.id === product.id && (item.size || '') === keySize
+      item => item.id === product.id && (item.size || '') === keySize
     );
 
     const maxAdd = getMaxAddable();
     if (maxAdd <= 0) {
-      toast({ title: 'المخزون غير كافٍ', description: 'لا يوجد مخزون كافٍ لهذا المقاس', variant: 'error' });
+      toast({
+        title: 'المخزون غير كافٍ',
+        description: 'لا يوجد مخزون كافٍ لهذا المقاس',
+        variant: 'error',
+      });
       return false;
     }
 
@@ -485,7 +583,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           imageUrl: product.imageUrl,
           quantity: qtyToAdd,
           // If product has variants, persist the selected size; otherwise keep undefined for consistency
-          size: hasVariants ? (selectedSize || undefined) : undefined,
+          size: hasVariants ? selectedSize || undefined : undefined,
         },
       ];
     }
@@ -494,12 +592,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newCart));
     window.dispatchEvent(new CustomEvent('cartUpdated'));
     if (qtyToAdd < quantity) {
-      toast({ title: 'إضافة جزئية', description: `تمت إضافة ${qtyToAdd} فقط بسبب حد المخزون المتاح`, variant: 'warning' });
+      toast({
+        title: 'إضافة جزئية',
+        description: `تمت إضافة ${qtyToAdd} فقط بسبب حد المخزون المتاح`,
+        variant: 'warning',
+      });
     } else {
-      toast({ title: 'تمت الإضافة', description: 'تم إضافة المنتج إلى السلة', variant: 'success' });
+      toast({
+        title: 'تمت الإضافة',
+        description: 'تم إضافة المنتج إلى السلة',
+        variant: 'success',
+      });
     }
     try {
-      trackAddToCart({ id: product.id, name: product.name, price, quantity: qtyToAdd, size: hasVariants ? (selectedSize || undefined) : undefined });
+      trackAddToCart({
+        id: product.id,
+        name: product.name,
+        price,
+        quantity: qtyToAdd,
+        size: hasVariants ? selectedSize || undefined : undefined,
+      });
     } catch {}
     return true;
   };
@@ -516,25 +628,27 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     if (!product) return 0;
     const keySize = size || '';
     const found = cart.find(
-      (i) => i.id === product.id && (i.size || '') === keySize
+      i => i.id === product.id && (i.size || '') === keySize
     );
     return found?.quantity || 0;
   };
 
   const getMaxAddable = () => {
     const stock = getCurrentStock();
-    const inCart = getInCartQty(product?.variants && selectedSize ? selectedSize : undefined);
+    const inCart = getInCartQty(
+      product?.variants && selectedSize ? selectedSize : undefined
+    );
     return Math.max(0, stock - inCart);
   };
 
   // Compute disabled state (no hooks; must be above early returns)
   const isButtonDisabled = !product
     ? true
-    : (product.variants && product.variants.length > 0)
-      ? (!selectedSize
-        ? false // let user click to be prompted to select size
-        : ((product.variants.find(v => v.size === selectedSize)?.stock || 0) <= 0))
-      : ((product.stock || 0) <= 0);
+    : product.variants && product.variants.length > 0
+    ? !selectedSize
+      ? false // let user click to be prompted to select size
+      : (product.variants.find(v => v.size === selectedSize)?.stock || 0) <= 0
+    : (product.stock || 0) <= 0;
 
   if (loading) {
     return (
@@ -582,11 +696,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const hasDiscount = product.discountedPrice < product.originalPrice;
   const displaySrc = selectedImage || product.imageUrl || '';
   const discountPercent = hasDiscount
-    ? Math.round(((product.originalPrice - currentPrice) / product.originalPrice) * 100)
+    ? Math.round(
+        ((product.originalPrice - currentPrice) / product.originalPrice) * 100
+      )
     : 0;
   const maxAddable = getMaxAddable();
-
-  
 
   return (
     <div className="min-h-screen bg-white pt-20 pb-28 sm:pb-12">
@@ -615,7 +729,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               },
               aggregateRating:
                 reviewsCount > 0
-                  ? { '@type': 'AggregateRating', ratingValue: avgRating, reviewCount: reviewsCount }
+                  ? {
+                      '@type': 'AggregateRating',
+                      ratingValue: avgRating,
+                      reviewCount: reviewsCount,
+                    }
                   : undefined,
             }),
           }}
@@ -655,14 +773,23 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <nav className="mb-4 text-sm text-gray-500" aria-label="breadcrumb">
           <ol className="flex items-center gap-2">
             <li>
-              <Link href="/" className="hover:text-[#0c1420] font-medium">الرئيسية</Link>
+              <Link href="/" className="hover:text-[#0c1420] font-medium">
+                الرئيسية
+              </Link>
             </li>
             <li className="text-gray-300">/</li>
             <li>
-              <Link href="/products" className="hover:text-[#0c1420] font-medium">المنتجات</Link>
+              <Link
+                href="/products"
+                className="hover:text-[#0c1420] font-medium"
+              >
+                المنتجات
+              </Link>
             </li>
             <li className="text-gray-300">/</li>
-            <li aria-current="page" className="text-[#0c1420]">{product.name}</li>
+            <li aria-current="page" className="text-[#0c1420]">
+              {product.name}
+            </li>
           </ol>
         </nav>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-10">
@@ -678,9 +805,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   product.image2Url || undefined,
                   product.image3Url || undefined,
                 ]
-                  .filter((u): u is string => typeof u === 'string' && u.length > 0)
+                  .filter(
+                    (u): u is string => typeof u === 'string' && u.length > 0
+                  )
                   .filter((v, i, arr) => arr.indexOf(v) === i)
-                  .map((url) => (
+                  .map(url => (
                     <button
                       key={url}
                       type="button"
@@ -689,11 +818,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       onFocus={() => setSelectedImage(url)}
                       aria-pressed={selectedImage === url}
                       className={`relative w-20 h-20 rounded-xl border overflow-hidden ${
-                        selectedImage === url ? 'ring-2 ring-yellow-600' : 'hover:ring-2 hover:ring-yellow-400'
+                        selectedImage === url
+                          ? 'ring-2 ring-yellow-600'
+                          : 'hover:ring-2 hover:ring-yellow-400'
                       }`}
                       title="الصورة"
                     >
-                      <ImageWithFallback src={url} alt="thumbnail" fill sizes="80px" className="object-cover" />
+                      <ImageWithFallback
+                        src={url}
+                        alt="thumbnail"
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
                     </button>
                   ))}
               </div>
@@ -701,8 +838,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               <div
                 ref={imageBoxRef}
                 className="relative w-full aspect-square bg-white rounded-xl shadow-lg overflow-hidden border border-yellow-200 cursor-zoom-in"
-                onMouseEnter={() => { setIsHovering(true); setLensVisible(true); setZoomPaneVisible(true); }}
-                onMouseLeave={() => { setIsHovering(false); setLensVisible(false); setZoomPaneVisible(false); }}
+                onMouseEnter={() => {
+                  setIsHovering(true);
+                  setLensVisible(true);
+                  setZoomPaneVisible(true);
+                }}
+                onMouseLeave={() => {
+                  setIsHovering(false);
+                  setLensVisible(false);
+                  setZoomPaneVisible(false);
+                }}
                 onMouseMove={onImageMouseMove}
                 onClick={() => setIsLightboxOpen(true)}
               >
@@ -713,13 +858,20 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-contain"
                   priority
-                  onLoad={(e) => setImgNatural({ w: (e.currentTarget as any).naturalWidth || 0, h: (e.currentTarget as any).naturalHeight || 0 })}
+                  onLoad={e =>
+                    setImgNatural({
+                      w: (e.currentTarget as any).naturalWidth || 0,
+                      h: (e.currentTarget as any).naturalHeight || 0,
+                    })
+                  }
                 />
                 {/* Magnifier Lens hidden as requested */}
                 <div className="hidden" />
                 {/* External Zoom Pane (desktop only, fixed on screen) */}
                 <div
-                  className={`hidden md:block pointer-events-none fixed ${zoomPaneVisible ? '' : 'opacity-0'} transition-opacity z-[999]`}
+                  className={`hidden md:block pointer-events-none fixed ${
+                    zoomPaneVisible ? '' : 'opacity-0'
+                  } transition-opacity z-[999]`}
                   style={{
                     width: zoomPaneSize,
                     height: zoomPaneSize,
@@ -730,9 +882,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
                     backgroundImage: `url(${displaySrc})`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: `${imgFit.w * ZOOM_SCALE}px ${imgFit.h * ZOOM_SCALE}px`,
+                    backgroundSize: `${imgFit.w * ZOOM_SCALE}px ${
+                      imgFit.h * ZOOM_SCALE
+                    }px`,
                     backgroundPosition: `${zoomPaneBgPx.x}px ${zoomPaneBgPx.y}px`,
-                    backgroundColor: '#fff'
+                    backgroundColor: '#fff',
                   }}
                 />
                 {/* Decorative corner overlay */}
@@ -769,7 +923,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   sizes="(max-width: 768px) 100vw, 100vw"
                   className="object-contain"
                   priority
-                  onLoad={(e) => setImgNatural({ w: (e.currentTarget as any).naturalWidth || 0, h: (e.currentTarget as any).naturalHeight || 0 })}
+                  onLoad={e =>
+                    setImgNatural({
+                      w: (e.currentTarget as any).naturalWidth || 0,
+                      h: (e.currentTarget as any).naturalHeight || 0,
+                    })
+                  }
                 />
               </div>
               <div className="mt-4 grid grid-cols-4 gap-3">
@@ -779,9 +938,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   product.image2Url || undefined,
                   product.image3Url || undefined,
                 ]
-                  .filter((u): u is string => typeof u === 'string' && u.length > 0)
+                  .filter(
+                    (u): u is string => typeof u === 'string' && u.length > 0
+                  )
                   .filter((v, i, arr) => arr.indexOf(v) === i)
-                  .map((url) => (
+                  .map(url => (
                     <button
                       key={url}
                       type="button"
@@ -790,11 +951,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       onFocus={() => setSelectedImage(url)}
                       aria-pressed={selectedImage === url}
                       className={`relative w-full aspect-square rounded-xl border overflow-hidden ${
-                        selectedImage === url ? 'ring-2 ring-yellow-600' : 'hover:ring-2 hover:ring-yellow-400'
+                        selectedImage === url
+                          ? 'ring-2 ring-yellow-600'
+                          : 'hover:ring-2 hover:ring-yellow-400'
                       }`}
                       title="الصورة"
                     >
-                      <ImageWithFallback src={url} alt="thumbnail" fill sizes="(max-width: 768px) 25vw, 120px" className="object-cover" />
+                      <ImageWithFallback
+                        src={url}
+                        alt="thumbnail"
+                        fill
+                        sizes="(max-width: 768px) 25vw, 120px"
+                        className="object-cover"
+                      />
                     </button>
                   ))}
               </div>
@@ -820,18 +989,33 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   title={isFavorite ? 'حذف من المفضلة' : 'أضف إلى المفضلة'}
                   aria-label={isFavorite ? 'حذف من المفضلة' : 'أضف إلى المفضلة'}
                 >
-                  <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'text-rose-600 fill-rose-600' : ''}`} />
-                  <span className="hidden sm:inline">{isFavorite ? 'في المفضلة' : 'أضف إلى المفضلة'}</span>
+                  <Heart
+                    className={`w-3.5 h-3.5 ${
+                      isFavorite ? 'text-rose-600 fill-rose-600' : ''
+                    }`}
+                  />
+                  <span className="hidden sm:inline">
+                    {isFavorite ? 'في المفضلة' : 'أضف إلى المفضلة'}
+                  </span>
                 </button>
               </div>
               <div className="flex items-center gap-2 mt-2">
-                {Array.from({ length: 5 }, (_, i) => i + 1).map((i) => (
-                  <Star key={i} className={`w-4 h-4 ${i <= Math.round(avgRating) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`} />
+                {Array.from({ length: 5 }, (_, i) => i + 1).map(i => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i <= Math.round(avgRating)
+                        ? 'fill-yellow-500 text-yellow-500'
+                        : 'text-gray-300'
+                    }`}
+                  />
                 ))}
                 <span className="text-sm text-gray-600">{avgRating} / 5</span>
                 <span className="text-sm text-gray-400">({reviewsCount})</span>
               </div>
-              <p className="mt-1 text-sm text-gray-500">راحة تدوم، تصميم يلفت الأنظار.</p>
+              <p className="mt-1 text-sm text-gray-500">
+                راحة تدوم، تصميم يلفت الأنظار.
+              </p>
               {product.description && (
                 <p
                   className="mt-3 text-gray-700 leading-relaxed"
@@ -855,7 +1039,13 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     خصم {discountPercent}%
                   </span>
                 )}
-                <span className={`${hasDiscount ? 'text-rose-600 text-4xl md:text-5xl' : 'text-yellow-600 text-3xl'} font-extrabold`}>
+                <span
+                  className={`${
+                    hasDiscount
+                      ? 'text-rose-600 text-4xl md:text-5xl'
+                      : 'text-yellow-600 text-3xl'
+                  } font-extrabold`}
+                >
                   {formatPrice(currentPrice)}
                 </span>
                 {hasDiscount && (
@@ -869,7 +1059,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   <Clock className="w-4 h-4 text-yellow-700" />
                   <span className="font-bold">ينتهي العرض خلال:</span>
                   <span className="tabular-nums font-extrabold">
-                    {timeLeft.d > 0 ? `${timeLeft.d}ي ` : ''}{String(timeLeft.h).padStart(2, '0')}:{String(timeLeft.m).padStart(2, '0')}:{String(timeLeft.s).padStart(2, '0')}
+                    {timeLeft.d > 0 ? `${timeLeft.d}ي ` : ''}
+                    {String(timeLeft.h).padStart(2, '0')}:
+                    {String(timeLeft.m).padStart(2, '0')}:
+                    {String(timeLeft.s).padStart(2, '0')}
                   </span>
                 </div>
               )}
@@ -900,7 +1093,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       <button
                         onClick={() => {
                           const maxAdd = getMaxAddable();
-                          setQuantity(Math.min(quantity + 1, Math.max(1, maxAdd)));
+                          setQuantity(
+                            Math.min(quantity + 1, Math.max(1, maxAdd))
+                          );
                         }}
                         disabled={maxAddable <= 0 || quantity >= maxAddable}
                         className="w-7 h-7 rounded bg-gray-100 hover:bg-yellow-500 hover:text-white transition-all duration-200 font-bold text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -953,10 +1148,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 {selectedSize && (
                   <div className="flex items-center gap-3 text-sm">
                     <p className="text-green-600 font-medium">
-                      المخزون: {product.variants.find(x => x.size === selectedSize)?.stock ?? 0} قطعة
+                      المخزون:{' '}
+                      {product.variants.find(x => x.size === selectedSize)
+                        ?.stock ?? 0}{' '}
+                      قطعة
                     </p>
                     <p className="text-gray-600">
-                      المتاح للإضافة الآن: <span className="font-semibold">{getMaxAddable()}</span>
+                      المتاح للإضافة الآن:{' '}
+                      <span className="font-semibold">{getMaxAddable()}</span>
                     </p>
                   </div>
                 )}
@@ -981,7 +1180,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {Array.from(DEFAULT_SIZES).map((s) => (
+                  {Array.from(DEFAULT_SIZES).map(s => (
                     <button
                       key={s}
                       onClick={() => setSelectedSize(s)}
@@ -1056,8 +1255,276 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 className="w-full sm:w-auto flex-1 bg-yellow-500 text-white py-3 px-6 rounded-xl font-bold text-base transition-all duration-200 hover:bg-yellow-600 active:scale-95 focus:scale-95 transform will-change-transform disabled:opacity-50 disabled:cursor-not-allowed"
                 title="أضف إلى السلة"
               >
-                {isButtonDisabled ? 'نفذ المخزون' : `أضف إلى السلة - ${formatPrice(currentPrice)}`}
+                {isButtonDisabled
+                  ? 'نفذ المخزون'
+                  : `أضف إلى السلة - ${formatPrice(currentPrice)}`}
               </button>
+            </div>
+
+            {/* Payment & Share */}
+            <div className="flex flex-col gap-4 pt-4">
+              {/* Payment Icons */}
+              <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-xs font-medium text-gray-500">
+                  دفع آمن عبر:
+                </span>
+                <div className="flex items-center gap-3 opacity-70 grayscale hover:grayscale-0 transition-all">
+                  {/* Simple CSS/SVG placeholders for payment icons if images aren't available */}
+                  <div
+                    className="h-6 w-10 bg-white border rounded flex items-center justify-center"
+                    title="Visa"
+                  >
+                    <span className="text-[10px] font-bold text-blue-800">
+                      VISA
+                    </span>
+                  </div>
+                  <div
+                    className="h-6 w-10 bg-white border rounded flex items-center justify-center"
+                    title="Mastercard"
+                  >
+                    <div className="flex -space-x-1">
+                      <div className="w-3 h-3 rounded-full bg-red-500 opacity-80"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-500 opacity-80"></div>
+                    </div>
+                  </div>
+                  <div
+                    className="h-6 w-10 bg-white border rounded flex items-center justify-center"
+                    title="Cash on Delivery"
+                  >
+                    <span className="text-[10px] font-bold text-green-700">
+                      CASH
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Share */}
+              <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                <span className="text-sm font-medium text-gray-500">
+                  شارك المنتج:
+                </span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://wa.me/?text=${encodeURIComponent(
+                          product.name + ' ' + window.location.href
+                        )}`,
+                        '_blank'
+                      )
+                    }
+                    className="p-2 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                    title="مشاركة عبر واتساب"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                          window.location.href
+                        )}`,
+                        '_blank'
+                      )
+                    }
+                    className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                    title="مشاركة عبر فيسبوك"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                          product.name
+                        )}&url=${encodeURIComponent(window.location.href)}`,
+                        '_blank'
+                      )
+                    }
+                    className="p-2 rounded-full bg-sky-50 text-sky-500 hover:bg-sky-100 transition-colors"
+                    title="مشاركة عبر تويتر"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast({
+                        title: 'تم النسخ',
+                        description: 'تم نسخ الرابط بنجاح',
+                        variant: 'success',
+                      });
+                    }}
+                    className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                    title="نسخ الرابط"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment & Share */}
+            <div className="flex flex-col gap-4 pt-4">
+              {/* Payment Icons */}
+              <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-xs font-medium text-gray-500">
+                  دفع آمن عبر:
+                </span>
+                <div className="flex items-center gap-3 opacity-70 grayscale hover:grayscale-0 transition-all">
+                  {/* Simple CSS/SVG placeholders for payment icons if images aren't available */}
+                  <div
+                    className="h-6 w-10 bg-white border rounded flex items-center justify-center"
+                    title="Visa"
+                  >
+                    <span className="text-[10px] font-bold text-blue-800">
+                      VISA
+                    </span>
+                  </div>
+                  <div
+                    className="h-6 w-10 bg-white border rounded flex items-center justify-center"
+                    title="Mastercard"
+                  >
+                    <div className="flex -space-x-1">
+                      <div className="w-3 h-3 rounded-full bg-red-500 opacity-80"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-500 opacity-80"></div>
+                    </div>
+                  </div>
+                  <div
+                    className="h-6 w-10 bg-white border rounded flex items-center justify-center"
+                    title="Cash on Delivery"
+                  >
+                    <span className="text-[10px] font-bold text-green-700">
+                      CASH
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Share */}
+              <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                <span className="text-sm font-medium text-gray-500">
+                  شارك المنتج:
+                </span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://wa.me/?text=${encodeURIComponent(
+                          product.name + ' ' + window.location.href
+                        )}`,
+                        '_blank'
+                      )
+                    }
+                    className="p-2 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                    title="مشاركة عبر واتساب"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                          window.location.href
+                        )}`,
+                        '_blank'
+                      )
+                    }
+                    className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                    title="مشاركة عبر فيسبوك"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                          product.name
+                        )}&url=${encodeURIComponent(window.location.href)}`,
+                        '_blank'
+                      )
+                    }
+                    className="p-2 rounded-full bg-sky-50 text-sky-500 hover:bg-sky-100 transition-colors"
+                    title="مشاركة عبر تويتر"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast({
+                        title: 'تم النسخ',
+                        description: 'تم نسخ الرابط بنجاح',
+                        variant: 'success',
+                      });
+                    }}
+                    className="p-2 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                    title="نسخ الرابط"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Product Features */}
@@ -1117,7 +1584,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <div className="max-w-7xl mx-auto flex items-center gap-3">
           <div className="flex-1">
             <div className="text-sm text-gray-500">السعر</div>
-            <div className="text-lg font-extrabold text-yellow-600">{formatPrice(currentPrice)}</div>
+            <div className="text-lg font-extrabold text-yellow-600">
+              {formatPrice(currentPrice)}
+            </div>
           </div>
           <button
             type="button"
@@ -1138,7 +1607,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           role="dialog"
           aria-modal="true"
           aria-label="عرض الصورة بالحجم الكامل"
-          onClick={(e) => {
+          onClick={e => {
             if (e.target === e.currentTarget) setIsLightboxOpen(false);
           }}
         >
@@ -1158,7 +1627,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 type="button"
                 className="absolute left-4 text-white bg-white/10 hover:bg-white/20 rounded-full p-2"
                 aria-label="السابق"
-                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                onClick={e => {
+                  e.stopPropagation();
+                  prevImage();
+                }}
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
@@ -1166,7 +1638,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 type="button"
                 className="absolute right-4 text-white bg-white/10 hover:bg-white/20 rounded-full p-2"
                 aria-label="التالي"
-                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                onClick={e => {
+                  e.stopPropagation();
+                  nextImage();
+                }}
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
@@ -1177,20 +1652,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             className="relative w-full h-full max-w-5xl max-h-[85vh] px-6 overflow-hidden"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            onWheel={(e) => {
+            onWheel={e => {
               e.preventDefault();
-              setLbZoom((z) => {
+              setLbZoom(z => {
                 const next = z + (e.deltaY < 0 ? 0.2 : -0.2);
                 return Math.min(3, Math.max(1, Number(next.toFixed(2))));
               });
             }}
-            onDoubleClick={(e) => {
+            onDoubleClick={e => {
               e.stopPropagation();
-              setLbZoom((z) => (z > 1 ? 1 : 2));
+              setLbZoom(z => (z > 1 ? 1 : 2));
             }}
             aria-description="يمكن التكبير عبر عجلة الفأرة أو النقر المزدوج"
           >
-            <div className="absolute inset-0" style={{ transform: `scale(${lbZoom})`, transition: 'transform 150ms ease-out' }}>
+            <div
+              className="absolute inset-0"
+              style={{
+                transform: `scale(${lbZoom})`,
+                transition: 'transform 150ms ease-out',
+              }}
+            >
               <ImageWithFallback
                 src={selectedImage || product.imageUrl}
                 alt={product.name}
@@ -1203,7 +1684,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       )}
-      <SizeGuideModal isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
+      <SizeGuideModal
+        isOpen={showSizeGuide}
+        onClose={() => setShowSizeGuide(false)}
+      />
     </div>
   );
 }

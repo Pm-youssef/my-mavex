@@ -87,16 +87,27 @@ export const productSchema = z.object({
     .optional(),
 });
 
-export const checkoutSchema = z.object({
-  customerName: z
-    .string()
-    .min(2, 'الاسم يجب أن يكون حرفين على الأقل')
-    .max(100, 'الاسم طويل جداً'),
-  customerEmail: z.string().email('البريد الإلكتروني غير صحيح'),
-  customerPhone: z
-    .string()
-    .min(10, 'رقم الهاتف غير صحيح')
-    .max(15, 'رقم الهاتف طويل جداً'),
+export const checkoutSchema = z
+  .object({
+    customerName: z
+      .string()
+      .min(2, 'الاسم يجب أن يكون حرفين على الأقل')
+      .max(100, 'الاسم طويل جداً'),
+    // Email is optional; if provided it must be valid
+    customerEmail: z
+      .union([z.string().trim().email('البريد الإلكتروني غير صحيح'), z.literal('')])
+      .optional(),
+    // Phone is optional; if provided it must be 10-15 chars
+    customerPhone: z
+      .union([
+        z
+          .string()
+          .trim()
+          .min(10, 'رقم الهاتف غير صحيح')
+          .max(15, 'رقم الهاتف طويل جداً'),
+        z.literal(''),
+      ])
+      .optional(),
   customerAddress: z
     .string()
     .trim()
@@ -149,17 +160,26 @@ export const checkoutSchema = z.object({
       (v) => v == null || v.length === 0 || (v.length >= 3 && v.length <= 10),
       'الرمز البريدي للفواتير يجب أن يكون بين 3 و 10 أحرف عند تعبئته'
     ),
-  items: z
-    .array(
-      z.object({
-        id: z.string(),
-        size: z.string().optional(),
-        quantity: z.number().int().positive(),
-        price: z.number().positive(),
-      })
-    )
-    .min(1, 'يجب أن تحتوي الطلبية على منتج واحد على الأقل'),
-});
+    items: z
+      .array(
+        z.object({
+          id: z.string(),
+          size: z.string().optional(),
+          quantity: z.number().int().positive(),
+          price: z.number().positive(),
+        })
+      )
+      .min(1, 'يجب أن تحتوي الطلبية على منتج واحد على الأقل'),
+  })
+  .refine(
+    (data) =>
+      !!(data.customerEmail && data.customerEmail.trim().length > 0) ||
+      !!(data.customerPhone && data.customerPhone.trim().length > 0),
+    {
+      message: 'يجب إدخال البريد الإلكتروني أو رقم الهاتف',
+      path: ['customerPhone'],
+    }
+  );
 
 export const adminLoginSchema = z.object({
   password: z.string().min(1, 'كلمة المرور مطلوبة'),
