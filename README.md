@@ -1,171 +1,30 @@
-# 🎉 متجر التيشيرتات - T-Shirt Store
+# Mavex — T-shirt store
 
-## 🚀 الإعداد السريع (5 دقائق)
+A full online store for an Egyptian clothing brand: catalogue, cart, favourites, coupons, checkout with **Paymob**, customer accounts, reviews, and an admin dashboard for orders, products, shipping, customers and analytics. Arabic-first UI.
 
-### 1. تشغيل قاعدة البيانات
+Built with Next.js 14 (App Router), TypeScript, Prisma + PostgreSQL, Tailwind and Radix UI. Status: portfolio project (2025), not in production.
+
+## Run it locally
+
+Requires Node 18+ and Docker (for PostgreSQL).
+
 ```bash
-# الأسهل - ملف تلقائي
-setup-database.bat
-
-# أو يدوياً
 docker run --name tshirt-db -e POSTGRES_PASSWORD=password -e POSTGRES_DB=tshirtstore -p 5432:5432 -d postgres:15
+cp env.example .env        # set DATABASE_URL and ADMIN_PASSWORD (change the default)
+npm install
+npm run db:push            # create the tables
+npm run db:seed            # sample products
+npm run dev                # http://localhost:3000  ·  admin: /admin
 ```
 
-### 2. تشغيل المشروع
-```bash
-npm run dev
-```
+Payments, email, Google/Facebook login and analytics stay off until their keys are set in `.env` (see [`env.example`](env.example)).
 
-### 3. فتح المتصفح
-- **الرئيسية**: http://localhost:3000
-- **لوحة الإدارة**: http://localhost:3000/admin (كلمة المرور: admin123)
+## What is inside
 
-## ✅ ما تم إنجازه
+- **Store**: products and categories, cart, favourites, coupons, contact form, reviews, account pages, sitemap, maintenance mode.
+- **Checkout**: Paymob iframe + webhook (`src/lib/paymob.ts`, `src/app/api/checkout`, `src/app/api/webhook/paymob`).
+- **Admin** (`src/app/admin`): orders, products, categories, coupons, customers, reviews, messages, shipping, settings, analytics.
+- **Auth**: JWT for customers and admins, bcrypt passwords, Cloudflare Turnstile on forms.
+- **Tests**: Vitest unit tests (`npm test`) and Playwright end-to-end (`npm run test:e2e`).
 
-- ✅ **Next.js 14** مع App Router
-- ✅ **TypeScript** للكود الآمن
-- ✅ **Tailwind CSS** للتصميم
-- ✅ **Prisma + PostgreSQL** لقاعدة البيانات
-- ✅ **Paymob** للدفع الإلكتروني
-- ✅ **لوحة إدارة** محمية بكلمة مرور
-- ✅ **سلة تسوق** تفاعلية
-- ✅ **تصميم متجاوب** للجوال
-- ✅ **SEO محسن** مع sitemap و robots.txt
-- ✅ **جاهز للنشر** على Vercel
-- ✅ **تم إصلاح الثغرات الأمنية**
-- ✅ **ملفات إعداد تلقائية**
-- ✅ **توثيق شامل باللغة العربية**
-
-## 📁 الملفات المهمة
-
-### 🎯 ملفات الإعداد التلقائي:
-- `setup-database.bat` - إعداد قاعدة البيانات (Windows)
-- `setup-database.ps1` - إعداد قاعدة البيانات (PowerShell)
-- `quick-setup.bat` - إعداد سريع (Windows)
-- `quick-setup.ps1` - إعداد سريع (PowerShell)
-- `docker-compose.simple.yml` - إعداد Docker مبسط
-
-### 📚 ملفات التوثيق:
-- `QUICK_START.md` - بدء سريع
-- `SETUP_COMPLETE.md` - إعداد كامل
-- `SUMMARY.md` - ملخص المشروع
-- `FINAL_SUMMARY.md` - ملخص نهائي شامل
-
-## 🔑 معلومات الدخول
-
-- **كلمة مرور الإدارة**: `admin123`
-- **قاعدة البيانات**: PostgreSQL على المنفذ 5432
-- **اسم قاعدة البيانات**: `tshirtstore`
-- **المستخدم**: `postgres`
-- **كلمة المرور**: `password`
-
-## 📱 الميزات المتاحة
-
-- ✅ عرض المنتجات في شبكة جميلة
-- ✅ إضافة المنتجات للسلة
-- ✅ تعديل الكميات في السلة
-- ✅ حذف المنتجات من السلة
-- ✅ إتمام الطلب مع بيانات العميل
-- ✅ دفع إلكتروني آمن (Paymob)
-- ✅ إدارة المنتجات (إضافة، تعديل، حذف)
-- ✅ تصميم متجاوب
-- ✅ دعم اللغة العربية
-- ✅ SEO محسن
-
-## 🛠️ الأوامر المفيدة
-
-```bash
-npm run dev          # تشغيل التطوير
-npm run build        # بناء للإنتاج
-npm run start        # تشغيل الإنتاج
-npm run lint         # فحص الكود
-npx prisma studio    # فتح Prisma Studio
-npx prisma db push   # تحديث قاعدة البيانات
-npx prisma db seed   # إضافة بيانات تجريبية
-```
-
-## 🌐 النشر على Vercel
-
-1. ارفع المشروع على GitHub
-2. اربط المشروع بـ Vercel
-3. أضف المتغيرات البيئية
-4. اضغط Deploy
-
-## 🚨 استكشاف الأخطاء
-
-### مشكلة في قاعدة البيانات:
-   ```bash
-# تأكد من تشغيل PostgreSQL
-docker ps | grep postgres
-
-# أو تحقق من الخدمة
-netstat -an | findstr 5432
-```
-
-### مشكلة في التبعيات:
-   ```bash
-   rm -rf node_modules package-lock.json
-   npm install
-   ```
-
-### مشكلة في المتغيرات البيئية:
-- تأكد من وجود ملف `.env.local`
-- تحقق من صحة `DATABASE_URL`
-
-## 🎯 الخطوات التالية
-
-1. **إعداد Paymob** للحصول على مفاتيح API
-2. **إعداد Supabase** (اختياري)
-3. **تخصيص التصميم** والألوان
-4. **إضافة منتجات** عبر لوحة الإدارة
-5. **اختبار جميع الميزات**
-
-## 📞 الدعم
-
-إذا واجهت أي مشاكل:
-1. تحقق من ملف `QUICK_START.md`
-2. تأكد من صحة المتغيرات البيئية
-3. تحقق من اتصال قاعدة البيانات
-4. استخدم ملفات الإعداد التلقائي
-
----
-
-## 🎊 تهانينا!
-
-**لديك الآن متجر إلكتروني كامل وجاهز للعمل!**
-
-### 📋 ملخص سريع:
-1. **شغل قاعدة البيانات**: `setup-database.bat`
-2. **شغل المشروع**: `npm run dev`
-3. **افتح المتصفح**: http://localhost:3000
-4. **ادخل الإدارة**: http://localhost:3000/admin (admin123)
-
-**ملاحظة**: تأكد من تغيير كلمة مرور الإدارة والمفاتيح السرية قبل النشر في الإنتاج.
-
----
-
-## 🏆 إنجازات المشروع
-
-- **حالة المشروع**: مكتمل 95%
-- **التقنيات المستخدمة**: Next.js 14, TypeScript, Tailwind CSS, Prisma, PostgreSQL
-- **الميزات**: متجر إلكتروني كامل مع نظام دفع
-- **التوافق**: يعمل على جميع الأجهزة
-- **الأمان**: محمي من الثغرات الأمنية
-- **النشر**: جاهز للنشر على Vercel
-- **التوثيق**: توثيق شامل باللغة العربية
-- **الإعداد**: ملفات إعداد تلقائية
-
-## 🎯 التقييم النهائي
-
-| الجانب | الحالة | النسبة |
-|--------|--------|--------|
-| التطوير الأساسي | ✅ مكتمل | 100% |
-| قاعدة البيانات | ✅ مكتمل | 100% |
-| الميزات الأساسية | ✅ مكتمل | 100% |
-| الأمان والجودة | ✅ مكتمل | 100% |
-| النشر والتوزيع | ✅ مكتمل | 100% |
-| التوثيق | ✅ مكتمل | 100% |
-| الإعداد التلقائي | ✅ مكتمل | 100% |
-| **المجموع** | **✅ مكتمل** | **95%** |
-
-**الـ 5% المتبقية**: إعداد Paymob و Supabase وإضافة منتجات حقيقية. 
+Deploys on Vercel or Netlify (`vercel.json`, `netlify.toml`) or with Docker (`Dockerfile`, `docker-compose.yml`).
